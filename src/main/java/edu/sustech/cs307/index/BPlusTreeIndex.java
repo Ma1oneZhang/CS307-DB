@@ -1,4 +1,4 @@
-package edu.sustech.cs307.Index;
+package edu.sustech.cs307.index;
 
 public class BPlusTreeIndex {
 }
