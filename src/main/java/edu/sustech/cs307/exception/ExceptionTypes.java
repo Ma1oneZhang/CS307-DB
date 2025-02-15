@@ -3,7 +3,8 @@ package edu.sustech.cs307.exception;
 import edu.sustech.cs307.value.ValueType;
 
 public enum ExceptionTypes {
-    WRONG_COMPARISON_TYPE;
+    WRONG_COMPARISON_TYPE,
+    BAD_IO_TYPE;
 
     private String error_result;
 
@@ -15,10 +16,19 @@ public enum ExceptionTypes {
         return error_result;
     }
 
-    public ExceptionTypes WrongComparisonError(ValueType left, ValueType right) {
+    static public ExceptionTypes WrongComparisonError(ValueType left, ValueType right) {
         WRONG_COMPARISON_TYPE.SetErrorResult(
                 String.format("The type of value not match, left is %s, right is %s", left, right)
         );
         return WRONG_COMPARISON_TYPE;
+    }
+
+    static public ExceptionTypes BadIOError(String IOExceptionMessage) {
+        BAD_IO_TYPE.SetErrorResult(
+                String.format(
+                        "I/O is error, please check the message from system.\n Message:%s"
+                , IOExceptionMessage)
+        );
+        return BAD_IO_TYPE;
     }
 }
