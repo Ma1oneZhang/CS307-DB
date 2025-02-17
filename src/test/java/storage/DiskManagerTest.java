@@ -8,6 +8,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,7 +24,8 @@ class DiskManagerTest {
 
     @BeforeEach
     void setUp() {
-        diskManager = new DiskManager(tempDir.toString());
+        Map<String, Integer> map = new HashMap<>();
+        diskManager = new DiskManager(tempDir.toString(), map);
     }
 
     @Test
@@ -72,12 +75,13 @@ class DiskManagerTest {
         Files.write(filePath, expected);
 
         // 执行读取
-        Page page = diskManager.ReadPage(TEST_FILE, 0, PAGE_SIZE);
+        Page page = new Page();
+        diskManager.ReadPage(page, TEST_FILE, 0, PAGE_SIZE);
 
         assertThat(page.data)
                 .containsExactly(expected);
-        assertThat(page.filename).isEqualTo(TEST_FILE);
-        assertThat(page.file_offset).isZero();
+        assertThat(page.position.filename).isEqualTo(TEST_FILE);
+        assertThat(page.position.offset).isZero();
     }
 
     @Test
@@ -88,8 +92,9 @@ class DiskManagerTest {
         for (int i = 0; i < PAGE_SIZE; i++) {
             page.data[i] = (byte) (i % 128);
         }
-        page.filename = TEST_FILE;
-        page.file_offset = 0;
+        page.dirty = true;
+        page.position.filename = TEST_FILE;
+        page.position.offset = 0;
 
         // 写入文件
         diskManager.CreateFile(TEST_FILE);
@@ -107,9 +112,9 @@ class DiskManagerTest {
     @DisplayName("读取越界应抛出异常")
     void readOutOfBounds() throws Exception {
         diskManager.CreateFile(TEST_FILE);
-
+        Page page = new Page();
         assertThrows(DBException.class, () -> {
-            diskManager.ReadPage(TEST_FILE, PAGE_SIZE + 1, PAGE_SIZE);
+            diskManager.ReadPage(page, TEST_FILE, PAGE_SIZE + 1, PAGE_SIZE);
         });
     }
 
@@ -117,7 +122,7 @@ class DiskManagerTest {
     @DisplayName("写入不存在的文件应抛出异常")
     void writeToNonExistentFile() {
         Page page = new Page();
-        page.filename = NON_EXISTENT_FILE;
+        page.position.filename = NON_EXISTENT_FILE;
 
         assertThrows(DBException.class, () -> {
             diskManager.FlushPage(page);
@@ -138,14 +143,16 @@ class DiskManagerTest {
 
         Page page1 = new Page();
         System.arraycopy(largeData, 0, page1.data, 0, PAGE_SIZE);
-        page1.filename = TEST_FILE;
-        page1.file_offset = 0;
+        page1.position.filename = TEST_FILE;
+        page1.position.offset = 0;
+        page1.dirty = true;
         diskManager.FlushPage(page1);
 
         Page page2 = new Page();
         System.arraycopy(largeData, PAGE_SIZE, page2.data, 0, PAGE_SIZE);
-        page2.filename = TEST_FILE;
-        page2.file_offset = PAGE_SIZE;
+        page2.position.filename = TEST_FILE;
+        page2.position.offset = PAGE_SIZE;
+        page2.dirty = true;
         diskManager.FlushPage(page2);
 
         // 验证完整数据
