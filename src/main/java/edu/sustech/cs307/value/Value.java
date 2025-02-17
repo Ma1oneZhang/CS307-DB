@@ -1,5 +1,7 @@
 package edu.sustech.cs307.value;
 
+import java.nio.ByteBuffer;
+
 public class Value {
     public Object value;
     public ValueType type;
@@ -22,5 +24,43 @@ public class Value {
     public Value(String value) {
         this.value = value;
         type = ValueType.CHAR;
+    }
+
+    public byte[] ToByte() {
+        return switch (type) {
+            case INTEGER -> {
+                ByteBuffer buffer1 = ByteBuffer.allocate(8);
+                buffer1.putLong((long) value);
+                yield buffer1.array();
+            }
+            case FLOAT -> {
+                ByteBuffer buffer2 = ByteBuffer.allocate(8);
+                buffer2.putDouble((double) value);
+                yield buffer2.array();
+            }
+            case CHAR -> {
+                yield ((String) value).getBytes();
+            }
+            default -> throw new RuntimeException("Unsupported value type: " + type);
+        };
+    }
+
+    public static Value FromByte(byte[] bytes, ValueType type, int offset) {
+        return switch (type) {
+            case INTEGER -> {
+                ByteBuffer buffer1 = ByteBuffer.wrap(bytes).position(offset);
+                yield new Value(buffer1.getLong());
+            }
+            case FLOAT -> {
+                ByteBuffer buffer2 = ByteBuffer.wrap(bytes).position(offset);
+                yield new Value(buffer2.getDouble());
+            }
+            case CHAR -> {
+                String s = new String(bytes, offset, bytes.length - offset);
+                yield new Value(s);
+            }
+            default -> throw new RuntimeException("Unsupported value type: " + type);
+        };
+
     }
 }

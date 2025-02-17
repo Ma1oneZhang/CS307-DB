@@ -11,22 +11,24 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class DiskManager {
     private final String currentDir;
+    private Map<String, Integer> fileOffsets;
 
-    public DiskManager(String path) {
-        currentDir = path;
+    public DiskManager(String path, Map<String, Integer> fileOffsets) {
+        this.currentDir  = path;
+        this.fileOffsets = fileOffsets;
     }
 
     public String getCurrentDir() {
         return currentDir;
     }
 
-    public Page ReadPage(String filename, long offset, long length) throws DBException {
+    public void ReadPage(Page page, String filename, int offset, long length) throws DBException {
         // 拼接实际文件路径
         String real_path = currentDir + "/" + filename;
-        Page page = new Page();
         try (FileInputStream fis = new FileInputStream(real_path)) {
             long seeked = fis.skip(offset);
             if (seeked < offset) {
@@ -38,9 +40,8 @@ public class DiskManager {
                 throw new DBException(ExceptionTypes.BadIOError(
                         String.format("Bad file at offset: %d, length: %d", seeked, length)));
             }
-            page.file_offset = offset;
-            page.filename = filename;
-            return page;
+            page.position.offset = offset;
+            page.position.filename = filename;
         } catch (IOException e) {
             throw new DBException(ExceptionTypes.BadIOError(e.getMessage()));
         }
@@ -48,7 +49,7 @@ public class DiskManager {
 
     public void FlushPage(Page page) throws DBException {
         // 拼接实际文件路径
-        String real_path = currentDir + "/" + page.filename;
+        String real_path = currentDir + "/" + page.position.filename;
 
         // 检查文件是否存在，如果不存在抛出异常
         if (!Files.exists(Path.of(real_path))) {
@@ -58,7 +59,7 @@ public class DiskManager {
         try (RandomAccessFile raf = new RandomAccessFile(real_path, "rw");
              FileChannel channel = raf.getChannel()) {
             // 定位到对应的文件偏移位置
-            channel.position(page.file_offset);
+            channel.position(page.position.offset);
             // 使用 ByteBuffer.wrap 避免额外的数据拷贝
             ByteBuffer buffer = ByteBuffer.wrap(page.data);
             while (buffer.hasRemaining()) {
@@ -90,9 +91,20 @@ public class DiskManager {
                 if (!file.createNewFile()) {
                     throw new DBException(ExceptionTypes.BadIOError("File creation failed: " + real_path));
                 }
+                this.fileOffsets.put(filename, 0);
             } catch (IOException e) {
                 throw new DBException(ExceptionTypes.BadIOError(e.getMessage()));
             }
         }
+    }
+
+    // return file start;
+    public Integer allocatePage(String filename) throws DBException {
+        Integer offset = this.fileOffsets.get(filename);
+        if (offset == null) {
+            throw new DBException(ExceptionTypes.BadIOError(String.format("File not exists, %s", filename)));
+        }
+        this.fileOffsets.put(filename, offset + Page.DEFAULT_PAGE_SIZE);
+        return offset;
     }
 }
