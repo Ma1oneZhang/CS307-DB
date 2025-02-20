@@ -33,15 +33,15 @@ public class LogicalPlanner {
         if (stmt instanceof Select) {
             operator = handleSelect((Select) stmt);
         } else if (stmt instanceof Insert) {
-            operator = handleInsert((Insert) stmt);
+            System.out.println("SQL 类型: INSERT");
         } else if (stmt instanceof Update) {
-            operator = handleUpdate((Update) stmt);
+            System.out.println("SQL 类型: UPDATE");
         } else if (stmt instanceof Delete) {
-            operator = handleDelete((Delete) stmt);
+            System.out.println("SQL 类型: DELETE");
         } else if (stmt instanceof CreateTable) {
-            //TODO
+            System.out.println("SQL 类型: CREATE TABLE");
         } else if (stmt instanceof Drop) {
-            //TODO
+            System.out.println("SQL 类型: DROP");
         } else {
             throw new DBException(ExceptionTypes.UnsupportedCommand((stmt.toString())));
         }
@@ -67,26 +67,6 @@ public class LogicalPlanner {
         root = new ProjectOperator(root, plainSelect.getSelectItems());
 
         return root;
-    }
-
-    private static LogicalOperator handleInsert(Insert insertStmt) {
-        return new InsertOperator(insertStmt.getTable().getName(), insertStmt.getColumns(), insertStmt.getValues());
-    }
-
-    private static LogicalOperator handleUpdate(Update updateStmt) {
-        LogicalOperator root = new TableScanOperator(updateStmt.getTable().getName());
-        if (updateStmt.getWhere() != null) {
-            root = new FilterOperator(root, updateStmt.getWhere());
-        }
-        return new UpdateOperator(root, updateStmt.getUpdateSets(), updateStmt.getExpressions());
-    }
-
-    private static LogicalOperator handleDelete(Delete deleteStmt) {
-        LogicalOperator root = new TableScanOperator(deleteStmt.getTable().getName());
-        if (deleteStmt.getWhere() != null) {
-            root = new FilterOperator(root, deleteStmt.getWhere());
-        }
-        return new DeleteOperator(root);
     }
 
 

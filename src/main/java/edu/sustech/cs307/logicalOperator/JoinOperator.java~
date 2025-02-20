@@ -1,0 +1,23 @@
+package edu.sustech.cs307.logicalOperator;
+
+import net.sf.jsqlparser.expression.Expression;
+
+import java.util.Arrays;
+
+public class JoinOperator extends LogicalOperator {
+    private final Expression joinCondition;
+
+    public JoinOperator(LogicalOperator left, LogicalOperator right, Expression condition) {
+        super(Arrays.asList(left, right));
+        this.joinCondition = condition;
+    }
+
+    public Expression getJoinCondition() {
+        return joinCondition;
+    }
+
+    @Override
+    public String toString() {
+        return "JoinOperator(condition=" + joinCondition + ")\n ├── " + children.get(0) + "\n ├── " + children.get(1);
+    }
+}

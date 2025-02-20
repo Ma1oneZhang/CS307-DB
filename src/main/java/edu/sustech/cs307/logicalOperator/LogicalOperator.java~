@@ -1,6 +1,5 @@
 package edu.sustech.cs307.logicalOperator;
 
-import java.util.List;
 
 public abstract class LogicalOperator {
     protected List<LogicalOperator> children;
