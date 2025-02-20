@@ -45,18 +45,18 @@ public class Value {
         };
     }
 
-    public static Value FromByte(byte[] bytes, ValueType type, int offset) {
+    public static Value FromByte(byte[] bytes, ValueType type) {
         return switch (type) {
             case INTEGER -> {
-                ByteBuffer buffer1 = ByteBuffer.wrap(bytes).position(offset);
+                ByteBuffer buffer1 = ByteBuffer.wrap(bytes);
                 yield new Value(buffer1.getLong());
             }
             case FLOAT -> {
-                ByteBuffer buffer2 = ByteBuffer.wrap(bytes).position(offset);
+                ByteBuffer buffer2 = ByteBuffer.wrap(bytes);
                 yield new Value(buffer2.getDouble());
             }
             case CHAR -> {
-                String s = new String(bytes, offset, bytes.length - offset);
+                String s = new String(bytes, 0, bytes.length);
                 yield new Value(s);
             }
             default -> throw new RuntimeException("Unsupported value type: " + type);
