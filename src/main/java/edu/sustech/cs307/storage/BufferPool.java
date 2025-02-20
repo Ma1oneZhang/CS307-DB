@@ -48,8 +48,8 @@ public class BufferPool {
      * @param {PageId} page_id 需要获取的页的PageId
      */
     public Page FetchPage(PagePosition position) throws DBException {
-        Integer frame_id = pageMap.get(position);
-        if (frame_id != null) {
+        if (pageMap.containsKey(position)) {
+            Integer frame_id = pageMap.get(position);
             Page page = pages.get(frame_id);
             page.pin_count ++;
             if (page.pin_count == 1) {
@@ -57,7 +57,7 @@ public class BufferPool {
             }
             return page;
         } else {
-            frame_id = find_victim_page();
+            int frame_id = find_victim_page();
             if (frame_id == -1) {
                 return null;
             }
@@ -118,7 +118,7 @@ public class BufferPool {
         if (frame_id == -1) {
             return null;
         }
-        int new_page_offset = diskManager.allocatePage(filename);
+        int new_page_offset = diskManager.allocatePage(filename) * Page.DEFAULT_PAGE_SIZE;
         Page page = pages.get(frame_id);
 
         PagePosition position = new PagePosition(filename, new_page_offset);
@@ -204,7 +204,7 @@ public class BufferPool {
         pageMap.remove(page.position);
         // add new one
         pageMap.put(new_position, frame_id);
-        Arrays.fill(page.data, (byte) 0);
+        Arrays.fill(page.data.array(), (byte) 0);
 
         page.position = new_position;
         page.pin_count = 0;

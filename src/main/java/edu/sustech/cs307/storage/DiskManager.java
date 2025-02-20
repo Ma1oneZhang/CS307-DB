@@ -15,11 +15,11 @@ import java.util.Map;
 
 public class DiskManager {
     private final String currentDir;
-    private Map<String, Integer> fileOffsets;
+    public Map<String, Integer> filePages;
 
     public DiskManager(String path, Map<String, Integer> fileOffsets) {
         this.currentDir  = path;
-        this.fileOffsets = fileOffsets;
+        this.filePages = fileOffsets;
     }
 
     public String getCurrentDir() {
@@ -36,7 +36,7 @@ public class DiskManager {
                         String.format("Seek out of range, offset: %d, length: %d", seeked, length)));
             }
             // 直接将文件中一个页面大小的数据读取到 page.data 中
-            if (fis.read(page.data) != Page.DEFAULT_PAGE_SIZE) {
+            if (fis.read(page.data.array()) != Page.DEFAULT_PAGE_SIZE) {
                 throw new DBException(ExceptionTypes.BadIOError(
                         String.format("Bad file at offset: %d, length: %d", seeked, length)));
             }
@@ -51,17 +51,13 @@ public class DiskManager {
         // 拼接实际文件路径
         String real_path = currentDir + "/" + page.position.filename;
 
-        // 检查文件是否存在，如果不存在抛出异常
-        if (!Files.exists(Path.of(real_path))) {
-            throw new DBException(ExceptionTypes.BadIOError("Flush file not found"));
-        }
         // 使用 RandomAccessFile 和 FileChannel 来定位并写入数据
         try (RandomAccessFile raf = new RandomAccessFile(real_path, "rw");
              FileChannel channel = raf.getChannel()) {
             // 定位到对应的文件偏移位置
             channel.position(page.position.offset);
             // 使用 ByteBuffer.wrap 避免额外的数据拷贝
-            ByteBuffer buffer = ByteBuffer.wrap(page.data);
+            ByteBuffer buffer = ByteBuffer.wrap(page.data.array());
             while (buffer.hasRemaining()) {
                 channel.write(buffer);
             }
@@ -91,7 +87,7 @@ public class DiskManager {
                 if (!file.createNewFile()) {
                     throw new DBException(ExceptionTypes.BadIOError("File creation failed: " + real_path));
                 }
-                this.fileOffsets.put(filename, 0);
+                this.filePages.put(filename, 0);
             } catch (IOException e) {
                 throw new DBException(ExceptionTypes.BadIOError(e.getMessage()));
             }
@@ -100,11 +96,11 @@ public class DiskManager {
 
     // return file start;
     public Integer allocatePage(String filename) throws DBException {
-        Integer offset = this.fileOffsets.get(filename);
+        Integer offset = this.filePages.get(filename);
         if (offset == null) {
             throw new DBException(ExceptionTypes.BadIOError(String.format("File not exists, %s", filename)));
         }
-        this.fileOffsets.put(filename, offset + Page.DEFAULT_PAGE_SIZE);
+        this.filePages.put(filename, offset + 1);
         return offset;
     }
 }
