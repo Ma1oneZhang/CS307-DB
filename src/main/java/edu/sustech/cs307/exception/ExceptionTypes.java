@@ -12,7 +12,8 @@ public enum ExceptionTypes {
     TABLE_ALREADY_EXIST,
     TABLE_DOSE_NOT_EXIST,
     COLUMN_ALREADY_EXIST,
-    COLUMN_DOSE_NOT_EXIST
+    COLUMN_DOSE_NOT_EXIST,
+    TABLE_HAS_NO_COLUMN,
     ;
 
     private String error_result;
@@ -97,5 +98,11 @@ public enum ExceptionTypes {
         return COLUMN_DOSE_NOT_EXIST;
     }
 
+    static public ExceptionTypes TableHasNoColumn(String tableName) {
+        TABLE_HAS_NO_COLUMN.SetErrorResult(
+                String.format("Table has no column: %s", tableName)
+        );
+        return TABLE_HAS_NO_COLUMN;
+    }
 
 }

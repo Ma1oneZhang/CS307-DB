@@ -1,10 +1,9 @@
 package edu.sustech.cs307.meta;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -15,17 +14,21 @@ import edu.sustech.cs307.exception.ExceptionTypes;
 public class MetaManager {
     private static final String META_FILE = "meta_data.json";
     private final Map<String, TableMeta> tables;
-    private final Gson gson;
+    private final ObjectMapper objectMapper;
 
     public MetaManager() throws DBException {
-        this.gson = new Gson();
+        this.objectMapper = new ObjectMapper();
         this.tables = new HashMap<>();
         loadFromJson();
     }
 
-    public void createTable(String tableName, TableMeta tableMeta) throws DBException {
+    public void createTable(TableMeta tableMeta) throws DBException {
+        String tableName = tableMeta.tableName;
         if (tables.containsKey(tableName)) {
             throw new DBException(ExceptionTypes.TableAlreadyExist(tableName));
+        }
+        if (tableMeta.columnCount() == 0) {
+            throw new DBException(ExceptionTypes.TableHasNoColumn(tableName));
         }
         tables.put(tableName, tableMeta);
         saveToJson();
@@ -66,7 +69,7 @@ public class MetaManager {
 
     private void saveToJson() throws DBException {
         try (Writer writer = new FileWriter(META_FILE)) {
-            gson.toJson(tables, writer);
+            objectMapper.writeValue(writer, tables);
         } catch (Exception e) {
             throw new DBException(ExceptionTypes.UnableSaveMetadata(e.getMessage()));
         }
@@ -77,9 +80,8 @@ public class MetaManager {
         if (!file.exists()) return;
 
         try (Reader reader = new FileReader(META_FILE)) {
-            Type type = new TypeToken<Map<String, TableMeta>>() {
-            }.getType();
-            Map<String, TableMeta> loadedTables = gson.fromJson(reader, type);
+            TypeReference<Map<String, TableMeta>> typeRef = new TypeReference<>() {};
+            Map<String, TableMeta> loadedTables = objectMapper.readValue(reader, typeRef);
             if (loadedTables != null) {
                 tables.putAll(loadedTables);
             }

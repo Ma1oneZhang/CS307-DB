@@ -14,6 +14,7 @@ class MetaManagerTest {
     private MetaManager metaManager;
     private static final String TEST_META_FILE = "meta_data.json";
 
+
     @BeforeEach
     void setUp() throws DBException {
         metaManager = new MetaManager();
@@ -33,7 +34,7 @@ class MetaManagerTest {
         tableMeta.addColumn(new ColumnMeta("id", ValueType.INTEGER));
         tableMeta.addColumn(new ColumnMeta("name", ValueType.CHAR));
 
-        metaManager.createTable("users", tableMeta);
+        metaManager.createTable(tableMeta);
         TableMeta retrievedMeta = metaManager.getTable("users");
 
         assertNotNull(retrievedMeta);
@@ -43,9 +44,16 @@ class MetaManagerTest {
     }
 
     @Test
+    void testCreateTableWithNoColumnsShouldFail() {
+        TableMeta emptyTable = new TableMeta("emptyTable");
+        assertThrows(DBException.class, () -> metaManager.createTable(emptyTable));
+    }
+
+    @Test
     void testDropTable() throws DBException {
         TableMeta tableMeta = new TableMeta("orders");
-        metaManager.createTable("orders", tableMeta);
+        tableMeta.addColumn(new ColumnMeta("order_id", ValueType.INTEGER));
+        metaManager.createTable(tableMeta);
         metaManager.dropTable("orders");
         assertNull(metaManager.getTable("orders"));
     }
@@ -53,7 +61,8 @@ class MetaManagerTest {
     @Test
     void testAddAndDropColumn() throws DBException {
         TableMeta tableMeta = new TableMeta("products");
-        metaManager.createTable("products", tableMeta);
+        tableMeta.addColumn(new ColumnMeta("product_id", ValueType.INTEGER));
+        metaManager.createTable(tableMeta);
 
         metaManager.addColumnInTable("products", new ColumnMeta("price", ValueType.FLOAT));
         assertTrue(metaManager.getTable("products").getColumns().containsKey("price"));
@@ -65,8 +74,9 @@ class MetaManagerTest {
     @Test
     void testTableAlreadyExistsException() throws DBException {
         TableMeta tableMeta = new TableMeta("customers");
-        metaManager.createTable("customers", tableMeta);
-        assertThrows(DBException.class, () -> metaManager.createTable("customers", tableMeta));
+        tableMeta.addColumn(new ColumnMeta("customer_id", ValueType.INTEGER));
+        metaManager.createTable(tableMeta);
+        assertThrows(DBException.class, () -> metaManager.createTable(tableMeta));
     }
 
     @Test
@@ -77,9 +87,9 @@ class MetaManagerTest {
     @Test
     void testColumnAlreadyExistsException() throws DBException {
         TableMeta tableMeta = new TableMeta("employees");
-        metaManager.createTable("employees", tableMeta);
+        tableMeta.addColumn(new ColumnMeta("salary", ValueType.FLOAT));
+        metaManager.createTable(tableMeta);
         ColumnMeta column = new ColumnMeta("salary", ValueType.FLOAT);
-        metaManager.addColumnInTable("employees", column);
         assertThrows(DBException.class, () -> metaManager.addColumnInTable("employees", column));
     }
 

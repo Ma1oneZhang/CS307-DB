@@ -51,4 +51,7 @@ public class TableMeta {
         this.columns = columns;
     }
 
+    public int columnCount() {
+        return this.columns.size();
+    }
 }
