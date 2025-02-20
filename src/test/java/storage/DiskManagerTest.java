@@ -78,7 +78,7 @@ class DiskManagerTest {
         Page page = new Page();
         diskManager.ReadPage(page, TEST_FILE, 0, PAGE_SIZE);
 
-        assertThat(page.data)
+        assertThat(page.data.array())
                 .containsExactly(expected);
         assertThat(page.position.filename).isEqualTo(TEST_FILE);
         assertThat(page.position.offset).isZero();
@@ -90,7 +90,7 @@ class DiskManagerTest {
         // 准备测试页
         Page page = new Page();
         for (int i = 0; i < PAGE_SIZE; i++) {
-            page.data[i] = (byte) (i % 128);
+            page.data.array()[i] = (byte) (i % 128);
         }
         page.dirty = true;
         page.position.filename = TEST_FILE;
@@ -105,7 +105,7 @@ class DiskManagerTest {
         byte[] fileContent = Files.readAllBytes(filePath);
         assertThat(fileContent)
                 .hasSize(PAGE_SIZE)
-                .containsExactly(page.data);
+                .containsExactly(page.data.array());
     }
 
     @Test
@@ -142,14 +142,14 @@ class DiskManagerTest {
         diskManager.CreateFile(TEST_FILE);
 
         Page page1 = new Page();
-        System.arraycopy(largeData, 0, page1.data, 0, PAGE_SIZE);
+        System.arraycopy(largeData, 0, page1.data.array(), 0, PAGE_SIZE);
         page1.position.filename = TEST_FILE;
         page1.position.offset = 0;
         page1.dirty = true;
         diskManager.FlushPage(page1);
 
         Page page2 = new Page();
-        System.arraycopy(largeData, PAGE_SIZE, page2.data, 0, PAGE_SIZE);
+        System.arraycopy(largeData, PAGE_SIZE, page2.data.array(), 0, PAGE_SIZE);
         page2.position.filename = TEST_FILE;
         page2.position.offset = PAGE_SIZE;
         page2.dirty = true;

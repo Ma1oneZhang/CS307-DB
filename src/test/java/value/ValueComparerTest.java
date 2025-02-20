@@ -5,9 +5,18 @@ import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.exception.ExceptionTypes;
 import edu.sustech.cs307.value.Value;
 import edu.sustech.cs307.value.ValueComparer;
+import edu.sustech.cs307.value.ValueType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.nio.ByteBuffer;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ValueComparerTest {
 
@@ -152,5 +161,92 @@ class ValueComparerTest {
         assertThatThrownBy(() -> ValueComparer.compare(v1, v2))
                 .isInstanceOf(DBException.class)
                 .hasMessageContaining("WRONG_COMPARISON_TYPE");
+    }
+
+    @Test
+    @DisplayName("测试使用Object和ValueType构造函数")
+    public void testConstructorWithObjectAndType() {
+        Value value = new Value(123L, ValueType.INTEGER);
+        assertThat(value.value).isEqualTo(123L);
+        assertThat(value.type).isEqualTo(ValueType.INTEGER);
+
+        value = new Value(123.45, ValueType.FLOAT);
+        assertThat(value.value).isEqualTo(123.45);
+        assertThat(value.type).isEqualTo(ValueType.FLOAT);
+
+        value = new Value("test", ValueType.CHAR);
+        assertThat(value.value).isEqualTo("test");
+        assertThat(value.type).isEqualTo(ValueType.CHAR);
+    }
+
+    @Test
+    @DisplayName("测试使用Long构造函数")
+    public void testConstructorWithLong() {
+        Value value = new Value(123L);
+        assertThat(value.value).isEqualTo(123L);
+        assertThat(value.type).isEqualTo(ValueType.INTEGER);
+    }
+
+    @Test
+    @DisplayName("测试使用Double构造函数")
+    public void testConstructorWithDouble() {
+        Value value = new Value(123.45);
+        assertThat(value.value).isEqualTo(123.45);
+        assertThat(value.type).isEqualTo(ValueType.FLOAT);
+    }
+
+    @Test
+    @DisplayName("测试使用String构造函数")
+    public void testConstructorWithString() {
+        Value value = new Value("test");
+        assertThat(value.value).isEqualTo("test");
+        assertThat(value.type).isEqualTo(ValueType.CHAR);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideToByteData")
+    @DisplayName("测试ToByte方法")
+    public void testToByte(Object value, ValueType type, byte[] expectedBytes) {
+        Value valueObj = new Value(value, type);
+        assertThat(valueObj.ToByte()).isEqualTo(expectedBytes);
+    }
+
+    private static Stream<Arguments> provideToByteData() {
+        return Stream.of(
+                Arguments.of(123L, ValueType.INTEGER, ByteBuffer.allocate(8).putLong(123L).array()),
+                Arguments.of(123.45, ValueType.FLOAT, ByteBuffer.allocate(8).putDouble(123.45).array()),
+                Arguments.of("test", ValueType.CHAR, "test".getBytes())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideFromByteData")
+    @DisplayName("测试FromByte方法")
+    public void testFromByte(byte[] bytes, ValueType type, Object expectedValue) {
+        Value valueObj = Value.FromByte(bytes, type);
+        assertThat(valueObj.value).isEqualTo(expectedValue);
+        assertThat(valueObj.type).isEqualTo(type);
+    }
+
+    private static Stream<Arguments> provideFromByteData() {
+        return Stream.of(
+                Arguments.of(ByteBuffer.allocate(8).putLong(123L).array(), ValueType.INTEGER, 123L),
+                Arguments.of(ByteBuffer.allocate(8).putDouble(123.45).array(), ValueType.FLOAT, 123.45),
+                Arguments.of("test".getBytes(), ValueType.CHAR, "test")
+        );
+    }
+
+    @Test
+    @DisplayName("测试ToByte方法在不支持的类型时抛出异常")
+    public void testToByteWithUnsupportedType() {
+        Value value = new Value(123L, ValueType.UNKNOWN);
+        assertThrows(RuntimeException.class, value::ToByte);
+    }
+
+    @Test
+    @DisplayName("测试FromByte方法在不支持的类型时抛出异常")
+    public void testFromByteWithUnsupportedType() {
+        byte[] bytes = ByteBuffer.allocate(8).putLong(123L).array();
+        assertThrows(RuntimeException.class, () -> Value.FromByte(bytes, ValueType.UNKNOWN));
     }
 }

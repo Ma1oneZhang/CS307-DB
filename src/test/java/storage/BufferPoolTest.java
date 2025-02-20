@@ -193,9 +193,9 @@ class BufferPoolTest {
         PagePosition targetPos = new PagePosition("test.db", 0);
         Page dirtyPage = bufferPool.FetchPage(targetPos);
         for(int i = 0;i < Page.DEFAULT_PAGE_SIZE;i ++) {
-            dirtyPage.data[i] = (byte) ((byte) i % 128);
+            dirtyPage.data.array()[i] = (byte) ((byte) i % 128);
         }
-        byte[] data = Arrays.copyOf(dirtyPage.data, Page.DEFAULT_PAGE_SIZE);
+        byte[] data = Arrays.copyOf(dirtyPage.data.array(), Page.DEFAULT_PAGE_SIZE);
         BufferPool.MarkPageDirty(dirtyPage);
         bufferPool.unpin_page(targetPos, true);
 
@@ -210,7 +210,7 @@ class BufferPoolTest {
 
         // 3. 验证磁盘是否被更新
         diskManager.ReadPage(page, targetPos.filename, targetPos.offset, Page.DEFAULT_PAGE_SIZE);
-        assertThat(page.data).isEqualTo(data);
+        assertThat(page.data.array()).isEqualTo(data);
     }
 
     @Test

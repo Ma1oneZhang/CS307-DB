@@ -32,6 +32,7 @@ public class DBEntry {
             JSqlParser parser = new CCJSqlParserManager();
             try {
                 Statement stmt = parser.parse(new StringReader(sql));
+
                 System.out.println(stmt);
             } catch (JSQLParserException e) {
                 System.err.println(e.getMessage());

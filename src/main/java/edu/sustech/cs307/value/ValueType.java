@@ -3,7 +3,8 @@ package edu.sustech.cs307.value;
 public enum ValueType {
     CHAR,
     INTEGER,
-    FLOAT;
+    FLOAT,
+    UNKNOWN;
 
     @Override
     public String toString(){
@@ -11,6 +12,7 @@ public enum ValueType {
             case CHAR -> "char";
             case INTEGER -> "int";
             case FLOAT -> "float";
+            case UNKNOWN -> "unknown";
         };
     }
 }
