@@ -6,7 +6,14 @@ public enum ExceptionTypes {
     WRONG_COMPARISON_TYPE,
     BAD_IO_TYPE,
     INVALID_SQL,
-    UNSUPPORTED_COMMAND_TYPE;
+    UNSUPPORTED_COMMAND_TYPE,
+    UNABLE_LOAD_METADATA,
+    UNABLE_SAVE_METADATA,
+    TABLE_ALREADY_EXIST,
+    TABLE_DOSE_NOT_EXIST,
+    COLUMN_ALREADY_EXIST,
+    COLUMN_DOSE_NOT_EXIST
+    ;
 
     private String error_result;
 
@@ -46,6 +53,48 @@ public enum ExceptionTypes {
                 String.format("Unsupported command type: %s", type)
         );
         return UNSUPPORTED_COMMAND_TYPE;
+    }
+
+    static public ExceptionTypes UnableLoadMetadata(String reason) {
+        UNABLE_LOAD_METADATA.SetErrorResult(
+                String.format("Unable to load metadata, the reason is: %s", reason)
+        );
+        return UNABLE_LOAD_METADATA;
+    }
+
+    static public ExceptionTypes UnableSaveMetadata(String reason) {
+        UNABLE_SAVE_METADATA.SetErrorResult(
+                String.format("Unable to save metadata, the reason is: %s", reason)
+        );
+        return UNABLE_SAVE_METADATA;
+    }
+
+    static public ExceptionTypes TableAlreadyExist(String tableName){
+        TABLE_ALREADY_EXIST.SetErrorResult(
+                String.format("Table is already exist: %s", tableName)
+        );
+        return TABLE_ALREADY_EXIST;
+    }
+
+    static public ExceptionTypes TableDoseNotExist(String tableName){
+        TABLE_DOSE_NOT_EXIST.SetErrorResult(
+                String.format("Table does not exist: %s", tableName)
+        );
+        return TABLE_DOSE_NOT_EXIST;
+    }
+
+    static public ExceptionTypes ColumnAlreadyExist(String columnName){
+        COLUMN_ALREADY_EXIST.SetErrorResult(
+                String.format("Column is already exist: %s", columnName)
+        );
+        return COLUMN_ALREADY_EXIST;
+    }
+
+    static public ExceptionTypes ColumnDoseNotExist(String columnName){
+        COLUMN_DOSE_NOT_EXIST.SetErrorResult(
+                String.format("Column does not exist: %s", columnName)
+        );
+        return COLUMN_DOSE_NOT_EXIST;
     }
 
 

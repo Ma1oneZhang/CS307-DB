@@ -8,7 +8,7 @@ import java.util.List;
 
 public class UpdateOperator extends LogicalOperator {
     private final String tableName;
-    private final List<String> columns;
+    private final List<UpdateSet> columns;
     private final List<Expression> expressions;
 
     public UpdateOperator(LogicalOperator child, List<UpdateSet> columns, List<Expression> expressions) {
@@ -22,7 +22,7 @@ public class UpdateOperator extends LogicalOperator {
         return tableName;
     }
 
-    public List<String> getColumns() {
+    public List<UpdateSet> getColumns() {
         return columns;
     }
 
