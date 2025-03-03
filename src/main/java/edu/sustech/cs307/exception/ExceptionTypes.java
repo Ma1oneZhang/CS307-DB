@@ -14,6 +14,8 @@ public enum ExceptionTypes {
     COLUMN_ALREADY_EXIST,
     COLUMN_DOSE_NOT_EXIST,
     TABLE_HAS_NO_COLUMN,
+    INVALID_TABLE_WIDTH,
+    UNSUPPORTED_OPERATOR_TYPE,
     ;
 
     private String error_result;
@@ -103,6 +105,20 @@ public enum ExceptionTypes {
                 String.format("Table has no column: %s", tableName)
         );
         return TABLE_HAS_NO_COLUMN;
+    }
+
+    static public ExceptionTypes InvalidTableWidth(int width) {
+        INVALID_TABLE_WIDTH.SetErrorResult(
+                String.format("Invalid table width: %d", width)
+        );
+        return INVALID_TABLE_WIDTH;
+    }
+
+    static public ExceptionTypes UnsupportedOperator(String operatorType) {
+        UNSUPPORTED_OPERATOR_TYPE.SetErrorResult(
+                String.format("Unsupported operator type: %s", operatorType)
+        );
+        return UNSUPPORTED_OPERATOR_TYPE;
     }
 
 }

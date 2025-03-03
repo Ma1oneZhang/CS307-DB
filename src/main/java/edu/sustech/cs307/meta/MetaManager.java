@@ -13,12 +13,14 @@ import edu.sustech.cs307.exception.ExceptionTypes;
 
 public class MetaManager {
     private static final String META_FILE = "meta_data.json";
+    private final String ROOT_DIR;
     private final Map<String, TableMeta> tables;
     private final ObjectMapper objectMapper;
 
-    public MetaManager() throws DBException {
+    public MetaManager(String root_dir) throws DBException {
         this.objectMapper = new ObjectMapper();
         this.tables = new HashMap<>();
+        this.ROOT_DIR = root_dir;
         loadFromJson();
     }
 
@@ -56,19 +58,26 @@ public class MetaManager {
         this.tables.get(tableName).dropColumn((columnName));
     }
 
-    public TableMeta getTable(String tableName) {
+    public TableMeta getTable(String tableName) throws DBException {
         if (tables.containsKey(tableName)) {
             return tables.get(tableName);
         }
-        return null;
+        throw new DBException(ExceptionTypes.TableDoseNotExist(tableName));
+        // return null;
     }
 
     public Set<String> getTableNames() {
         return this.tables.keySet();
     }
 
-    private void saveToJson() throws DBException {
-        try (Writer writer = new FileWriter(META_FILE)) {
+    public void saveToJson() throws DBException {
+        // check the root directory exists
+        if (!new File(ROOT_DIR).exists()) {
+            // create it
+            new File(ROOT_DIR).mkdirs();
+        }
+
+        try (Writer writer = new FileWriter(String.format("%s/%s", ROOT_DIR, META_FILE))) {
             objectMapper.writeValue(writer, tables);
         } catch (Exception e) {
             throw new DBException(ExceptionTypes.UnableSaveMetadata(e.getMessage()));
@@ -76,11 +85,13 @@ public class MetaManager {
     }
 
     private void loadFromJson() throws DBException {
-        File file = new File(META_FILE);
-        if (!file.exists()) return;
+        File file = new File(ROOT_DIR + "/" + META_FILE);
+        if (!file.exists())
+            return;
 
-        try (Reader reader = new FileReader(META_FILE)) {
-            TypeReference<Map<String, TableMeta>> typeRef = new TypeReference<>() {};
+        try (Reader reader = new FileReader(ROOT_DIR + "/" + META_FILE)) {
+            TypeReference<Map<String, TableMeta>> typeRef = new TypeReference<>() {
+            };
             Map<String, TableMeta> loadedTables = objectMapper.readValue(reader, typeRef);
             if (loadedTables != null) {
                 tables.putAll(loadedTables);

@@ -4,8 +4,10 @@ import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.*;
 import edu.sustech.cs307.value.ValueType;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,10 +16,13 @@ class MetaManagerTest {
     private MetaManager metaManager;
     private static final String TEST_META_FILE = "meta_data.json";
 
+    @TempDir
+    private Path root_dir;
+
 
     @BeforeEach
     void setUp() throws DBException {
-        metaManager = new MetaManager();
+        metaManager = new MetaManager(root_dir.toString());
     }
 
     @AfterEach
@@ -31,8 +36,8 @@ class MetaManagerTest {
     @Test
     void testCreateAndRetrieveTable() throws DBException {
         TableMeta tableMeta = new TableMeta("users");
-        tableMeta.addColumn(new ColumnMeta("id", ValueType.INTEGER));
-        tableMeta.addColumn(new ColumnMeta("name", ValueType.CHAR));
+        tableMeta.addColumn(new ColumnMeta("users","id", ValueType.INTEGER, 0, 4));
+        tableMeta.addColumn(new ColumnMeta("users", "name", ValueType.CHAR, 4, 4));
 
         metaManager.createTable(tableMeta);
         TableMeta retrievedMeta = metaManager.getTable("users");
@@ -52,19 +57,19 @@ class MetaManagerTest {
     @Test
     void testDropTable() throws DBException {
         TableMeta tableMeta = new TableMeta("orders");
-        tableMeta.addColumn(new ColumnMeta("order_id", ValueType.INTEGER));
+        tableMeta.addColumn(new ColumnMeta("orders", "order_id", ValueType.INTEGER, 0, 4));
         metaManager.createTable(tableMeta);
         metaManager.dropTable("orders");
-        assertNull(metaManager.getTable("orders"));
+        assertThrows(DBException.class, () -> metaManager.getTable("orders"));
     }
 
     @Test
     void testAddAndDropColumn() throws DBException {
         TableMeta tableMeta = new TableMeta("products");
-        tableMeta.addColumn(new ColumnMeta("product_id", ValueType.INTEGER));
+        tableMeta.addColumn(new ColumnMeta("products", "product_id", ValueType.INTEGER, 0, 4));
         metaManager.createTable(tableMeta);
 
-        metaManager.addColumnInTable("products", new ColumnMeta("price", ValueType.FLOAT));
+        metaManager.addColumnInTable("products", new ColumnMeta("products", "price", ValueType.FLOAT, 0, 4));
         assertTrue(metaManager.getTable("products").getColumns().containsKey("price"));
 
         metaManager.dropColumnInTable("products", "price");
@@ -74,7 +79,7 @@ class MetaManagerTest {
     @Test
     void testTableAlreadyExistsException() throws DBException {
         TableMeta tableMeta = new TableMeta("customers");
-        tableMeta.addColumn(new ColumnMeta("customer_id", ValueType.INTEGER));
+        tableMeta.addColumn(new ColumnMeta("customer_id", "customers", ValueType.INTEGER, 0, 4));
         metaManager.createTable(tableMeta);
         assertThrows(DBException.class, () -> metaManager.createTable(tableMeta));
     }
@@ -87,9 +92,9 @@ class MetaManagerTest {
     @Test
     void testColumnAlreadyExistsException() throws DBException {
         TableMeta tableMeta = new TableMeta("employees");
-        tableMeta.addColumn(new ColumnMeta("salary", ValueType.FLOAT));
+        tableMeta.addColumn(new ColumnMeta("salary", "employees", ValueType.FLOAT, 0, 4));
         metaManager.createTable(tableMeta);
-        ColumnMeta column = new ColumnMeta("salary", ValueType.FLOAT);
+        ColumnMeta column = new ColumnMeta("salary", "employees", ValueType.FLOAT, 0, 4);
         assertThrows(DBException.class, () -> metaManager.addColumnInTable("employees", column));
     }
 

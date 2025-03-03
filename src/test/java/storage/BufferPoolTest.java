@@ -96,7 +96,7 @@ class BufferPoolTest {
         Class<?> clazz = BufferPool.class;
         Field field = clazz.getDeclaredField("pageMap");
         field.setAccessible(true);
-        Map<PagePosition, Integer> pageMap =(Map<PagePosition, Integer>) field.get(bufferPool);
+        Map<PagePosition, Integer> pageMap = (Map<PagePosition, Integer>) field.get(bufferPool);
         assertThat(pageMap.size()).isEqualTo(3);
     }
 

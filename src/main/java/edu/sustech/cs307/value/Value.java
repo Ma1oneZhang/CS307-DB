@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 public class Value {
     public Object value;
     public ValueType type;
+    public static final int INT_SIZE = 8;
+    public static final int FLOAT_SIZE = 8;
+    public static final int CHAR_SIZE = 64;
 
     public Value(Object value, ValueType type) {
         this.value = value;
@@ -26,6 +29,12 @@ public class Value {
         type = ValueType.CHAR;
     }
 
+    /**
+     * 将当前值转换为字节数组。
+     * 
+     * @return 字节数组表示的值，根据值的类型（INTEGER、FLOAT、CHAR）进行转换。
+     * @throws RuntimeException 如果值的类型不受支持。
+     */
     public byte[] ToByte() {
         return switch (type) {
             case INTEGER -> {
@@ -45,6 +54,14 @@ public class Value {
         };
     }
 
+    /**
+     * 根据给定的字节数组和值类型创建一个 Value 对象。
+     *
+     * @param bytes 字节数组，表示要转换的值。
+     * @param type  值的类型，支持 INTEGER、FLOAT 和 CHAR。
+     * @return 转换后的 Value 对象。
+     * @throws RuntimeException 如果提供的值类型不受支持。
+     */
     public static Value FromByte(byte[] bytes, ValueType type) {
         return switch (type) {
             case INTEGER -> {
