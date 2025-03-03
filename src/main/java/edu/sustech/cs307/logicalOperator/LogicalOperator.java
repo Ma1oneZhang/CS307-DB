@@ -13,6 +13,12 @@ public abstract class LogicalOperator {
         return children;
     }
 
-    public abstract String toString();  // 用于打印逻辑计划树
+    public LogicalOperator getInput() {
+        if (children != null && !children.isEmpty()) {
+            return children.get(0);
+        }
+        return null;
+    }
 
+    public abstract String toString(); // 用于表示算子的字符串形式
 }

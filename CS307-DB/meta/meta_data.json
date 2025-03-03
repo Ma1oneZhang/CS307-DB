@@ -1,0 +1,1 @@
+{"a":{"tableName":"a","columns_list":[{"tableName":"a","name":"a","type":"INTEGER","len":8,"offset":0},{"tableName":"a","name":"b","type":"CHAR","len":64,"offset":8}],"indexes":{}},"b":{"tableName":"b","columns_list":[{"tableName":"b","name":"a","type":"INTEGER","len":8,"offset":0},{"tableName":"b","name":"b","type":"CHAR","len":64,"offset":8}],"indexes":{}}}
