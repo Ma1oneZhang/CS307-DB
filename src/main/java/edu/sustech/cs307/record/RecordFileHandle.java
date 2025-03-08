@@ -175,6 +175,10 @@ public class RecordFileHandle {
         return new RecordPageHandle(fileHeader, page);
     }
 
+    public void UnpinPageHandle(int pageId, boolean is_dirty) throws DBException {
+        bufferPool.unpin_page(new PagePosition(filename, pageId), is_dirty);
+    }
+
     /**
      * 创建一个新的记录页面句柄。
      * 
@@ -220,8 +224,7 @@ public class RecordFileHandle {
      * 
      * @param handle 要释放的记录页面句柄
      */
-    @SuppressWarnings("unused")
-    private void release_page_handle(RecordPageHandle handle) {
+    private void deletePageHandle(RecordPageHandle handle) {
         handle.pageHdr.setNextFreePageNo(fileHeader.getFirstFreePage());
         fileHeader.setFirstFreePage(handle.page.getPageID());
     }

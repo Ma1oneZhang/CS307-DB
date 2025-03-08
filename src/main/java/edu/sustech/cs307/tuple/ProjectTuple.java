@@ -1,8 +1,10 @@
-package edu.sustech.cs307.record;
+package edu.sustech.cs307.tuple;
 
+import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.meta.TabCol;
-import edu.sustech.cs307.tuple.Tuple;
 import edu.sustech.cs307.value.Value;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,18 +25,16 @@ public class ProjectTuple extends Tuple {
      * 根据给定的记录和列信息，从输入元组中获取对应的值。
      * 如果指定的列在投影列表中，则返回该列的值；否则返回 null。
      *
-     * @param record 要查询的记录
      * @param tabCol 要获取值的列信息
      * @return 指定列的值，如果列不在投影列表中则返回 null
      */
     @Override
-    public Value getValue(Record record, TabCol tabCol) {
+    public Value getValue(TabCol tabCol) {
         for (TabCol projectColumn : schema) {
             if (projectColumn.equals(tabCol)) {
-                return inputTuple.getValue(record, tabCol); // Get value from input tuple
+                return inputTuple.getValue(tabCol); // Get value from input tuple
             }
         }
-        // TODO: throw error
         return null; // Column not in projection list
     }
 
@@ -46,5 +46,16 @@ public class ProjectTuple extends Tuple {
     @Override
     public TabCol[] getTupleSchema() {
         return tupleSchema;
+    }
+
+    @Override
+    public Value[] getValues() {
+        // 通过 meta 顺序和信息获取所有 Value
+        ArrayList<Value> values = new ArrayList<>();
+        for (var tabCol : this.tupleSchema) {
+            Value value = getValue(tabCol);
+            values.add(value);
+        }
+        return values.toArray(new Value[0]);
     }
 }

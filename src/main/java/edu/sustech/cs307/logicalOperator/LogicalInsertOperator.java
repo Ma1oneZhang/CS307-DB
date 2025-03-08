@@ -7,9 +7,9 @@ import net.sf.jsqlparser.schema.Column;
 import java.util.Collections;
 
 public class LogicalInsertOperator extends LogicalOperator {
-    private final String tableName;
-    private final ExpressionList<Column> columns;
-    private final Expression values;
+    public final String tableName;
+    public final ExpressionList<Column> columns;
+    public final Expression values;
 
     public LogicalInsertOperator(String tableName, ExpressionList<Column> columns, Expression values) {
         super(Collections.emptyList());

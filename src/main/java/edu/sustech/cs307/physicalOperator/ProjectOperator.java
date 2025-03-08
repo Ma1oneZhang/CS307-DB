@@ -1,7 +1,7 @@
 package edu.sustech.cs307.physicalOperator;
 
 import edu.sustech.cs307.meta.ColumnMeta;
-import edu.sustech.cs307.record.ProjectTuple; // Import ProjectTuple
+import edu.sustech.cs307.tuple.ProjectTuple;
 import edu.sustech.cs307.tuple.Tuple;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.AllColumns;

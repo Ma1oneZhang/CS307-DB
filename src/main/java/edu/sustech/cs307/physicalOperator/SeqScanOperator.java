@@ -30,7 +30,6 @@ public class SeqScanOperator implements PhysicalOperator {
     private int recordsPerPage;
     private boolean isOpen = false;
 
-
     public SeqScanOperator(String tableName, DBManager dbManager) {
         this.tableName = tableName;
         this.dbManager = dbManager;
@@ -40,12 +39,13 @@ public class SeqScanOperator implements PhysicalOperator {
             // Handle exception properly, maybe log or rethrow
             e.printStackTrace();
         }
-        this.tupleType = new TableTuple(tableName, tableMeta);
+        this.tupleType = new TableTuple(tableName, tableMeta, currentRecord);
     }
 
     @Override
     public boolean hasNext() {
-        if (!isOpen) return false;
+        if (!isOpen)
+            return false;
         try {
             // Check if current page and slot are valid, and if there are more records
             if (currentPageNum <= totalPages) {
@@ -67,7 +67,6 @@ public class SeqScanOperator implements PhysicalOperator {
         return false; // No more records
     }
 
-
     @Override
     public void Begin() {
         try {
@@ -85,7 +84,8 @@ public class SeqScanOperator implements PhysicalOperator {
 
     @Override
     public void Next() {
-        if (!isOpen) return;
+        if (!isOpen)
+            return;
         try {
             if (hasNext()) { // Advance to the next record
                 RecordPageHandle pageHandle = fileHandle.FetchPageHandle(currentPageNum);
@@ -96,6 +96,8 @@ public class SeqScanOperator implements PhysicalOperator {
                     currentPageNum++;
                     currentSlotNum = 0;
                 }
+                // readonly
+                fileHandle.UnpinPageHandle(currentPageNum, false);
             } else {
                 currentRecord = null;
             }
@@ -105,18 +107,18 @@ public class SeqScanOperator implements PhysicalOperator {
         }
     }
 
-
     @Override
     public Tuple Current() {
         if (!isOpen || currentRecord == null) {
             return null;
         }
-        return new TableTuple(tableName, tableMeta); // Create new TableTuple for each record
+        return new TableTuple(tableName, tableMeta, currentRecord); // Create new TableTuple for each record
     }
 
     @Override
     public void Close() {
-        if (!isOpen) return;
+        if (!isOpen)
+            return;
         try {
             dbManager.getRecordManager().CloseFile(fileHandle);
         } catch (DBException e) {
@@ -130,9 +132,5 @@ public class SeqScanOperator implements PhysicalOperator {
     @Override
     public ArrayList<ColumnMeta> outputSchema() {
         return tableMeta.columns_list;
-    }
-
-    public Record getCurrentRecord() {
-        return currentRecord; // Add getter for currentRecord for debugging/testing
     }
 }

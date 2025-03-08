@@ -59,7 +59,7 @@ public class Record {
      * @param data 字节缓冲区
      */
     public Record(ByteBuf data) {
-        this.data = data;
+        this.data = data.copy();
         this.size = data.capacity();
     }
 
