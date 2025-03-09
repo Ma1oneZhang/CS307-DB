@@ -1,1 +1,0 @@
-{"a":{"tableName":"a","columns_list":[{"tableName":"a","name":"a","type":"INTEGER","len":8,"offset":0},{"tableName":"a","name":"b","type":"INTEGER","len":8,"offset":8}],"indexes":{}}}
