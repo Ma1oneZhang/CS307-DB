@@ -62,15 +62,16 @@ public class RecordManager {
     /**
      * 打开指定名称的记录文件，并返回对应的记录文件句柄。
      *
-     * @param filename 要打开的记录文件的名称
+     * @param table_name 要打开的记录文件的名称
      * @return 返回与指定记录文件关联的 RecordFileHandle
      * @throws DBException 如果在打开文件过程中发生错误
      */
-    public RecordFileHandle OpenFile(String filename) throws DBException {
+    public RecordFileHandle OpenFile(String table_name) throws DBException {
         Page page = new Page();
-        diskManager.ReadPage(page, filename, 0, Page.DEFAULT_PAGE_SIZE);
+        String data_file = String.format("%s/%s", table_name, "data");
         RecordFileHeader recordFileHeader = new RecordFileHeader(page.data);
-        return new RecordFileHandle(diskManager, bufferPool, filename, recordFileHeader);
+        diskManager.ReadPage(page, data_file, 0, Page.DEFAULT_PAGE_SIZE);
+        return new RecordFileHandle(diskManager, bufferPool, data_file, recordFileHeader);
     }
 
     /**

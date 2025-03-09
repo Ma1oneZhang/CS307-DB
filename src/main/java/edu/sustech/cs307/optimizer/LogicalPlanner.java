@@ -1,21 +1,13 @@
 package edu.sustech.cs307.optimizer;
 
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import edu.sustech.cs307.meta.ColumnMeta;
-import edu.sustech.cs307.system.DBManager;
-import edu.sustech.cs307.value.ValueType;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.parser.JSqlParser;
-import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.ExplainStatement;
 import net.sf.jsqlparser.statement.ShowStatement;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.show.ShowTablesStatement;
 import net.sf.jsqlparser.statement.update.Update;
@@ -26,13 +18,13 @@ import net.sf.jsqlparser.statement.drop.Drop;
 
 import edu.sustech.cs307.exception.ExceptionTypes;
 import edu.sustech.cs307.logicalOperator.*;
+import edu.sustech.cs307.system.DBManager;
 import edu.sustech.cs307.logicalOperator.dml.CreateTableExecutor;
 import edu.sustech.cs307.logicalOperator.dml.DropTableExecutor;
 import edu.sustech.cs307.logicalOperator.dml.ExplainExecutor;
 import edu.sustech.cs307.logicalOperator.dml.ShowDatabaseExecutor;
 import edu.sustech.cs307.logicalOperator.dml.ShowTableExecutor;
 import edu.sustech.cs307.exception.DBException;
-import org.pmw.tinylog.Logger;
 
 public class LogicalPlanner {
     public static LogicalOperator resolveAndPlan(DBManager dbManager, String sql) throws DBException {
@@ -81,9 +73,8 @@ public class LogicalPlanner {
         return operator;
     }
 
-    public static LogicalOperator handleSelect(DBManager dbManager, Select selectStmt) {
+    public static LogicalOperator handleSelect(DBManager dbManager, Select selectStmt) throws DBException {
         PlainSelect plainSelect = selectStmt.getPlainSelect();
-
         LogicalOperator root = new LogicalTableScanOperator(plainSelect.getFromItem().toString(), dbManager);
 
         int depth = 0;
@@ -113,7 +104,7 @@ public class LogicalPlanner {
                 insertStmt.getValues());
     }
 
-    private static LogicalOperator handleUpdate(DBManager dbManager, Update updateStmt) {
+    private static LogicalOperator handleUpdate(DBManager dbManager, Update updateStmt) throws DBException {
         LogicalOperator root = new LogicalTableScanOperator(updateStmt.getTable().getName(), dbManager);
         if (updateStmt.getWhere() != null) {
             root = new LogicalFilterOperator(root, updateStmt.getWhere());
@@ -122,7 +113,7 @@ public class LogicalPlanner {
                 updateStmt.getExpressions());
     }
 
-    private static LogicalOperator handleDelete(DBManager dbManager, Delete deleteStmt) {
+    private static LogicalOperator handleDelete(DBManager dbManager, Delete deleteStmt) throws DBException {
         LogicalOperator root = new LogicalTableScanOperator(deleteStmt.getTable().getName(), dbManager);
         if (deleteStmt.getWhere() != null) {
             root = new LogicalFilterOperator(root, deleteStmt.getWhere());

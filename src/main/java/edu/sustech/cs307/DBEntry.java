@@ -13,12 +13,14 @@ import edu.sustech.cs307.system.DBManager;
 import edu.sustech.cs307.system.RecordManager;
 import edu.sustech.cs307.tuple.Tuple;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.pmw.tinylog.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -40,7 +42,7 @@ public class DBEntry {
         Logger.info("Initializing...");
         DBManager dbManager = null;
         try {
-            Map<String, Integer> disk_manager_meta = DiskManager.read_disk_manager_meta();
+            Map<String, Integer> disk_manager_meta = new HashMap<>(DiskManager.read_disk_manager_meta());
             DiskManager diskManager = new DiskManager(DB_NAME, disk_manager_meta);
             BufferPool bufferPool = new BufferPool(POOL_SIZE, diskManager);
             RecordManager recordManager = new RecordManager(diskManager, bufferPool);
@@ -84,14 +86,17 @@ public class DBEntry {
                         Logger.info(operator);
                         continue;
                     }
-                    Logger.info(getHeader(physicalOperator.outputSchema()));
+                    Logger.info(getStartEndLine(physicalOperator.outputSchema().size(), true));
+                    Logger.info(getHeaderString(physicalOperator.outputSchema()));
+                    Logger.info(getSperator(physicalOperator.outputSchema().size()));
                     physicalOperator.Begin();
                     while (physicalOperator.hasNext()) {
+                        physicalOperator.Next();
                         Tuple tuple = physicalOperator.Current();
                         Logger.info(getRecordString(tuple));
+                        Logger.info(getSperator(physicalOperator.outputSchema().size()));
                     }
                     physicalOperator.Close();
-                    Logger.info(getEndLine(physicalOperator.outputSchema().size()));
                 } catch (DBException e) {
                     Logger.error(e.getMessage());
                     Logger.error("An error occurred. Please try again.");
@@ -107,18 +112,51 @@ public class DBEntry {
 
     }
 
-    private static String getHeader(ArrayList<ColumnMeta> columnMetas) {
-        // todo
-        return null;
+    private static String getHeaderString(ArrayList<ColumnMeta> columnMetas) {
+        StringBuilder header = new StringBuilder("|");
+        for (var entry : columnMetas) {
+            String tabcol = String.format("%s.%s", entry.tableName, entry.name);
+            String centeredText = StringUtils.center(tabcol, 15, ' ');
+            header.append(centeredText).append("|");
+        }
+        return header.toString();
     }
 
-    private static String getRecordString(Tuple Tuple) {
-        // todo
-        return null;
+    private static String getRecordString(Tuple tuple) {
+        StringBuilder tuple_string = new StringBuilder("|");
+        for (var entry : tuple.getValues()) {
+            String tabCol = String.format("%s", entry);
+            String centeredText = StringUtils.center(tabCol, 15, ' ');
+            tuple_string.append(centeredText).append("|");
+        }
+        return tuple_string.toString();
     }
 
-    private static String getEndLine(int width) {
-        // todo
-        return null;
+    private static String getSperator(int width) {
+        // ───────────────
+        StringBuilder line = new StringBuilder("+");
+        for (int i = 0; i < width; i++) {
+            line.append("───────────────");
+            line.append("+");
+        }
+        return line.toString();
+    }
+
+    private static String getStartEndLine(int width, boolean header) {
+        StringBuilder end_line;
+        if (header) {
+            end_line = new StringBuilder("┌");
+        } else {
+            end_line = new StringBuilder("└");
+        }
+        for (int i = 0; i < width; i++) {
+            end_line.append("───────────────");
+            if (header) {
+                end_line.append("┐");
+            } else {
+                end_line.append("┘");
+            }
+        }
+        return end_line.toString();
     }
 }

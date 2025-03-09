@@ -19,6 +19,8 @@ public class TableMeta {
 
     private Map<String, IndexType> indexes; // 索引信息
 
+    private Map<String, Integer> column_rank;
+
     public enum IndexType {
         BTREE
     }

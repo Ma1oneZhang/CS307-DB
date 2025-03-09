@@ -16,11 +16,6 @@ import java.util.*;
  * - 删除页面（DeletePage）
  * - 刷新所有页面（FlushAllPages）
  * - 删除指定文件的所有页面（DeleteAllPages）
- * 
- * 该类使用 LRU 替换算法来管理页面的替换，并维护一个空闲页面列表。
- * 
- * @param pool_size   缓冲池的大小
- * @param diskManager 磁盘管理器，用于与磁盘进行交互
  */
 public class BufferPool {
     private final int poolSize;

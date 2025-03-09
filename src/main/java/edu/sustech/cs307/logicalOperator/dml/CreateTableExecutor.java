@@ -31,6 +31,9 @@ public class CreateTableExecutor implements DMLExecutor {
         String table = createTableStmt.getTable().getName();
         ArrayList<ColumnMeta> colMapping = new ArrayList<>();
         int offset = 0;
+        if (null == createTableStmt.getColumnDefinitions()) {
+            throw new DBException(ExceptionTypes.TableHasNoColumn(table));
+        }
         for (var col : createTableStmt.getColumnDefinitions()) {
             // transform the column definition to ColumnMeta
             // we only accept the char, int, float type

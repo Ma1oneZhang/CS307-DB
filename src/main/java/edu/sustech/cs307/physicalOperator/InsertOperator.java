@@ -1,34 +1,55 @@
 package edu.sustech.cs307.physicalOperator;
 
 import edu.sustech.cs307.meta.ColumnMeta;
+import edu.sustech.cs307.meta.TableMeta;
+import edu.sustech.cs307.system.DBManager;
 import edu.sustech.cs307.tuple.Tuple;
+import edu.sustech.cs307.value.Value;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import java.util.List;
 import java.util.ArrayList;
 
 public class InsertOperator implements PhysicalOperator {
-    private PhysicalOperator inputOperator;
-    private String tableName;
-    private List<String> columnNames;
-    private List<String> values;
-
-    public InsertOperator(PhysicalOperator inputOperator, String tableName, List<String> columnNames, List<String> values) {
-        this.inputOperator = inputOperator;
-        this.tableName = tableName;
+    private final String data_file;
+    private final List<String> columnNames;
+    private final List<Value> values;
+    private final DBManager dbManager;
+    private int columnSize;
+    public InsertOperator(String data_file, List<String> columnNames, List<Value> values, DBManager dbManager) {
+        this.data_file = data_file;
         this.columnNames = columnNames;
         this.values = values;
+        this.dbManager = dbManager;
+        this.columnSize = columnNames.size();
     }
-
 
     @Override
     public boolean hasNext() {
-        // TODO: Implement hasNext
         return false;
     }
 
     @Override
     public void Begin() {
-        // TODO: Implement Begin
+        try {
+            String dataFile = data_file;
+            var fileHandle = dbManager.getRecordManager().OpenFile(dataFile);
+
+            // Serialize values to ByteBuf
+            ByteBuf buffer = Unpooled.buffer();
+            for (int i = 0;i < values.size();i ++) {
+                buffer.writeBytes(values.get(i).ToByte());
+                if(i != 0 && (i + 1) % columnSize == 0) {
+                    fileHandle.InsertRecord(buffer);
+                    buffer.clear();
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to insert record: " + e.getMessage() + "\n");
+        }
     }
 
     @Override
@@ -49,20 +70,14 @@ public class InsertOperator implements PhysicalOperator {
 
     @Override
     public ArrayList<ColumnMeta> outputSchema() {
-        // TODO: Implement outputSchema
-        return null;
+        return new ArrayList<>();
     }
 
     public void reset() {
-        //TODO: Implement reset
+        // nothing to do
     }
 
     public Tuple getNextTuple() {
-        //TODO: Implement getNextTuple
         return null;
-    }
-
-    public void close() {
-        //TODO: Implement close
     }
 }

@@ -90,13 +90,13 @@ public class FilterOperator implements PhysicalOperator {
 
         try {
             if (leftExpr instanceof Column) {
-                leftValue = tuple.getValue(null, new TabCol(tableName, ((Column) leftExpr).getColumnName()));
+                leftValue = tuple.getValue(new TabCol(tableName, ((Column) leftExpr).getColumnName()));
             } else {
                 leftValue = getConstantValue(leftExpr); // Handle constant left value
             }
 
             if (rightExpr instanceof Column) {
-                rightValue = tuple.getValue(null, new TabCol(tableName, ((Column) rightExpr).getColumnName()));
+                rightValue = tuple.getValue( new TabCol(tableName, ((Column) rightExpr).getColumnName()));
             } else {
                 rightValue = getConstantValue(rightExpr); // Handle constant right value
             }
@@ -167,3 +167,13 @@ public class FilterOperator implements PhysicalOperator {
         return input.outputSchema();
     }
 }
+///┌──────────────────────┌───────────────────────
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        │                      │                            │
+//        └──────────────────────└────────────────────────────┘

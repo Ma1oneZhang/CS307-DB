@@ -13,16 +13,18 @@ import edu.sustech.cs307.meta.ColumnMeta;
 import io.netty.buffer.ByteBuf;
 
 public class TableTuple extends Tuple {
-    private String tableName;
-    private TableMeta tableMeta;
+    private final String tableName;
+    private final TableMeta tableMeta;
+    private final Record record;
 
-    public TableTuple(String tableName, TableMeta tableMeta) {
+    public TableTuple(String tableName, TableMeta tableMeta, Record record) {
         this.tableName = tableName;
         this.tableMeta = tableMeta;
+        this.record = record;
     }
 
     @Override
-    public Value getValue(Record record, TabCol tabCol) {
+    public Value getValue(TabCol tabCol) {
         // TODO: throw a exception
         if (!tabCol.getTableName().equals(tableName)) {
             return null;
@@ -36,21 +38,18 @@ public class TableTuple extends Tuple {
         // Use GetColumnValue to get the value based on offset and len
         ByteBuf columnValueBuf = record.GetColumnValue(offset, len); // Use the record passed to getValue
         // Convert ByteBuf to Value (assuming you have a method for this)
-        Value value = convertByteBufToValue(columnValueBuf, columnMeta.type);
-        return value;
+        return convertByteBufToValue(columnValueBuf, columnMeta.type);
     }
 
     private Value convertByteBufToValue(ByteBuf byteBuf, ValueType columnType) {
         byte[] bytes = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(bytes);
-        String valueStr = new String(bytes);
 
         if (columnType == ValueType.INTEGER) {
-            return new Value((long) Integer.parseInt(valueStr.trim()));
+            return new Value(byteBuf.getLong(0));
         } else if (columnType == ValueType.CHAR) {
-            return new Value(valueStr.trim());
+            return new Value(byteBuf.getCharSequence(0, 64, java.nio.charset.StandardCharsets.UTF_8).toString());
         } else if (columnType == ValueType.FLOAT) {
-            return new Value((double) Double.parseDouble(valueStr.trim()));
+            return new Value(byteBuf.getDouble(0));
         } else {
             // TODO: throw an exception
             return null; // Or throw an exception for unsupported types
@@ -67,5 +66,17 @@ public class TableTuple extends Tuple {
         });
         return (TabCol[]) result.toArray();
 
+    }
+
+    @Override
+    public Value[] getValues() {
+        // 通过 meta 顺序和信息获取所有 Value
+        ArrayList<Value> values = new ArrayList<>();
+        for (ColumnMeta columnMeta : this.tableMeta.getColumns().values()) {
+            TabCol tabCol = new TabCol(columnMeta.tableName, columnMeta.name);
+            Value value = getValue(tabCol);
+            values.add(value);
+        }
+        return values.toArray(new Value[0]);
     }
 }
