@@ -1,5 +1,6 @@
 package edu.sustech.cs307.physicalOperator;
 
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.index.InMemoryOrderedIndex;
 import edu.sustech.cs307.record.Record;
 import edu.sustech.cs307.tuple.Tuple;
@@ -22,7 +23,7 @@ public class InMemoryIndexScanOperator implements PhysicalOperator {
     }
 
     @Override
-    public void Begin() {
+    public void Begin() throws DBException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'Begin'");
     }

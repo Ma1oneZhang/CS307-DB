@@ -2,9 +2,8 @@ package edu.sustech.cs307.tuple;
 
 import java.util.ArrayList;
 
-import edu.sustech.cs307.meta.ColumnMeta;
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.TabCol;
-import edu.sustech.cs307.record.Record;
 import edu.sustech.cs307.value.Value;
 
 /**
@@ -30,7 +29,7 @@ public class JoinTuple extends Tuple {
      * @return 返回对应列的值，如果两侧元组均无值，则返回 null
      */
     @Override
-    public Value getValue(TabCol tabCol) {
+    public Value getValue(TabCol tabCol) throws DBException {
         Value leftValue = leftTuple.getValue(tabCol);
         if (leftValue != null) {
             return leftValue;
@@ -49,7 +48,7 @@ public class JoinTuple extends Tuple {
     }
 
     @Override
-    public Value[] getValues() {
+    public Value[] getValues() throws DBException {
         // 通过 meta 顺序和信息获取所有 Value
         ArrayList<Value> values = new ArrayList<>();
         for (var tabcol : this.tupleSchema) {

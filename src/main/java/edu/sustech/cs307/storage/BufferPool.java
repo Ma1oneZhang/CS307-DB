@@ -195,11 +195,10 @@ public class BufferPool {
      * @throws DBException 如果在刷新过程中发生数据库异常
      */
     public void FlushAllPages(String filename) throws DBException {
-
         for (Map.Entry<PagePosition, Integer> entry : this.pageMap.entrySet()) {
             PagePosition position = entry.getKey();
             Integer frame_id = entry.getValue();
-            if (filename == null || position.filename.equals(filename)) {
+            if (filename.equals("") || position.filename.equals(filename)) {
                 Page page = pages.get(frame_id);
                 diskManager.FlushPage(page);
                 page.dirty = false;

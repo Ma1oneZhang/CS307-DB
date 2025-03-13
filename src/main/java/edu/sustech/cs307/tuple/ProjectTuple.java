@@ -1,6 +1,6 @@
 package edu.sustech.cs307.tuple;
 
-import edu.sustech.cs307.meta.ColumnMeta;
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.TabCol;
 import edu.sustech.cs307.value.Value;
 
@@ -29,7 +29,7 @@ public class ProjectTuple extends Tuple {
      * @return 指定列的值，如果列不在投影列表中则返回 null
      */
     @Override
-    public Value getValue(TabCol tabCol) {
+    public Value getValue(TabCol tabCol) throws DBException {
         for (TabCol projectColumn : schema) {
             if (projectColumn.equals(tabCol)) {
                 return inputTuple.getValue(tabCol); // Get value from input tuple
@@ -49,7 +49,7 @@ public class ProjectTuple extends Tuple {
     }
 
     @Override
-    public Value[] getValues() {
+    public Value[] getValues() throws DBException {
         // 通过 meta 顺序和信息获取所有 Value
         ArrayList<Value> values = new ArrayList<>();
         for (var tabCol : this.tupleSchema) {

@@ -9,6 +9,7 @@ import edu.sustech.cs307.value.Value;
 import edu.sustech.cs307.value.ValueType;
 import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.meta.TableMeta;
+
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
@@ -17,28 +18,28 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.statement.select.Values;
-import org.pmw.tinylog.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 public class PhysicalPlanner {
     public static PhysicalOperator generateOperator(DBManager dbManager, LogicalOperator logicalOp) throws DBException {
-        if (logicalOp instanceof LogicalTableScanOperator) {
-            return handleTableScan(dbManager, (LogicalTableScanOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalFilterOperator) {
-            return handleFilter(dbManager, (LogicalFilterOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalJoinOperator) {
-            return handleJoin(dbManager, (LogicalJoinOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalProjectOperator) {
-            return handleProject(dbManager, (LogicalProjectOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalInsertOperator) {
-            return handleInsert(dbManager, (LogicalInsertOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalDeleteOperator) {
-            return handleDelete(dbManager, (LogicalDeleteOperator) logicalOp);
-        } else if (logicalOp instanceof LogicalUpdateOperator) {
-            return handleUpdate(dbManager, (LogicalUpdateOperator) logicalOp);
+        if (logicalOp instanceof LogicalTableScanOperator tableScanOperator) {
+            return handleTableScan(dbManager, tableScanOperator);
+        } else if (logicalOp instanceof LogicalFilterOperator filterOperator) {
+            return handleFilter(dbManager, filterOperator);
+        } else if (logicalOp instanceof LogicalJoinOperator joinOperator) {
+            return handleJoin(dbManager, joinOperator);
+        } else if (logicalOp instanceof LogicalProjectOperator projectOperator) {
+            return handleProject(dbManager, projectOperator);
+        } else if (logicalOp instanceof LogicalInsertOperator insertOperator) {
+            return handleInsert(dbManager, insertOperator);
+        } else if (logicalOp instanceof LogicalDeleteOperator deleteOperator) {
+            return handleDelete(dbManager, deleteOperator);
+        } else if (logicalOp instanceof LogicalUpdateOperator updateOperator) {
+            return handleUpdate(dbManager, updateOperator);
         } else {
             throw new DBException(ExceptionTypes.UnsupportedOperator(logicalOp.getClass().getSimpleName()));
         }
@@ -68,12 +69,7 @@ public class PhysicalPlanner {
     private static PhysicalOperator handleFilter(DBManager dbManager, LogicalFilterOperator logicalFilterOp)
             throws DBException {
         PhysicalOperator inputOp = generateOperator(dbManager, logicalFilterOp.getInput());
-        String tableName = "";
-        if (logicalFilterOp.getInput() instanceof LogicalTableScanOperator) {
-            tableName = ((LogicalTableScanOperator) logicalFilterOp.getInput()).getTableName();
-        }
-        // TODO: Implement filter operator
-        return new FilterOperator(inputOp, logicalFilterOp.getWhereExpr(), tableName);
+        return new FilterOperator(inputOp, logicalFilterOp.getWhereExpr());
     }
 
     private static PhysicalOperator handleJoin(DBManager dbManager, LogicalJoinOperator logicalJoinOp)
@@ -82,24 +78,10 @@ public class PhysicalPlanner {
         PhysicalOperator rightOp = generateOperator(dbManager, logicalJoinOp.getRightInput());
         PhysicalOperator joinOp = new NestedLoopJoinOperator(leftOp, rightOp, logicalJoinOp.getJoinExprs());
 
-        List<Expression> joinFilters = logicalJoinOp.getJoinExprs();
-        if (joinFilters != null && !joinFilters.isEmpty()) {
-            Expression filterExpr = null;
-            Iterator<Expression> iterator = joinFilters.iterator();
-            if (iterator.hasNext()) {
-                filterExpr = iterator.next();
-                while (iterator.hasNext()) {
-                    filterExpr = new AndExpression(filterExpr, iterator.next());
-                }
-            }
-            String tableName = "";
-            if (logicalJoinOp.getLeftInput() instanceof LogicalTableScanOperator) {
-                tableName = ((LogicalTableScanOperator) logicalJoinOp.getLeftInput()).getTableName();
-            }
-            joinOp = new FilterOperator(joinOp, filterExpr, tableName);
-        }
+        Collection<Expression> joinFilters = logicalJoinOp.getJoinExprs();
+        PhysicalOperator finalOp = new FilterOperator(joinOp, joinFilters);
 
-        return joinOp;
+        return finalOp;
     }
 
     private static PhysicalOperator handleProject(DBManager dbManager, LogicalProjectOperator logicalProjectOp)
@@ -154,7 +136,21 @@ public class PhysicalPlanner {
         }
         ExpressionList<?> valuesList = ((Values) logicalInsertOp.values).getExpressions();
         if (columns.size() != valuesList.size()) {
-            throw new DBException(ExceptionTypes.InsertColumnSizeMismatch());
+            var element = valuesList.get(0);
+            if (element instanceof ParenthesedExpressionList<?> parenthesed) {
+                // check the children reexpressions
+                for (Expression expr : valuesList) {
+                    if (expr instanceof ParenthesedExpressionList<?> expressionList) {
+                        if (expressionList.getExpressions().size() != columns.size()) {
+                            throw new DBException(ExceptionTypes.InsertColumnSizeMismatch());
+                        }
+                    } else {
+                        throw new DBException(ExceptionTypes.InsertColumnSizeMismatch());
+                    }
+                }
+            } else {
+                throw new DBException(ExceptionTypes.InsertColumnSizeMismatch());
+            }
         }
 
         List<Value> values = new ArrayList<>();
@@ -167,7 +163,9 @@ public class PhysicalPlanner {
                 values, dbManager);
     }
 
-    private static void parseValue(List<Value> values, ExpressionList<?> valuesList, TableMeta tableMeta) throws DBException {
+    @SuppressWarnings("deprecation")
+    private static void parseValue(List<Value> values, ExpressionList<?> valuesList, TableMeta tableMeta)
+            throws DBException {
         for (int i = 0; i < valuesList.size(); i++) {
             var expr = valuesList.getExpressions().get(i);
             if (expr instanceof StringValue string_value) {

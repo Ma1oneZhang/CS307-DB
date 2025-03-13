@@ -39,15 +39,7 @@ public class RecordFileHandle {
         this.diskManager = diskManager;
         this.bufferPool = bufferPool;
         this.filename = filename;
-
-        // Read the header from the file
-        // We just wanna get the number of pages
-        // just let page free
-        Page page = new Page();
-        diskManager.ReadPage(page, filename, 0, Page.DEFAULT_PAGE_SIZE);
-        fileHeader = new RecordFileHeader(page.data);
-
-        diskManager.filePages.put(filename, fileHeader.getNumberOfPages());
+        this.fileHeader = header;
     }
 
     /**

@@ -1,5 +1,6 @@
 package edu.sustech.cs307.physicalOperator;
 
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.record.Record;
 import edu.sustech.cs307.tuple.Tuple;
@@ -13,7 +14,7 @@ public class IndexScanOperator implements PhysicalOperator {
     }
 
     @Override
-    public void Begin() {
+    public void Begin() throws DBException {
 
     }
 

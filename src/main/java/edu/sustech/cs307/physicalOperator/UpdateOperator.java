@@ -1,5 +1,6 @@
 package edu.sustech.cs307.physicalOperator;
 
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.tuple.Tuple;
 
@@ -14,7 +15,8 @@ public class UpdateOperator implements PhysicalOperator {
     private List<UpdateSet> updateSets;
     private Expression whereExpr;
 
-    public UpdateOperator(PhysicalOperator inputOperator, String tableName, List<UpdateSet> updateSets, Expression whereExpr) {
+    public UpdateOperator(PhysicalOperator inputOperator, String tableName, List<UpdateSet> updateSets,
+            Expression whereExpr) {
         this.inputOperator = inputOperator;
         this.tableName = tableName;
         this.updateSets = updateSets;
@@ -28,7 +30,7 @@ public class UpdateOperator implements PhysicalOperator {
     }
 
     @Override
-    public void Begin() {
+    public void Begin() throws DBException {
         // TODO: Implement Begin
     }
 
@@ -55,15 +57,15 @@ public class UpdateOperator implements PhysicalOperator {
     }
 
     public void reset() {
-        //TODO: Implement reset
+        // TODO: Implement reset
     }
 
     public Tuple getNextTuple() {
-        //TODO: Implement getNextTuple
+        // TODO: Implement getNextTuple
         return null;
     }
 
     public void close() {
-        //TODO: Implement close
+        // TODO: Implement close
     }
 }

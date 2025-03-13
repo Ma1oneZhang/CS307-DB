@@ -14,6 +14,9 @@ public class RecordFileHeader {
     public final static int SIZE = 20;
     ByteBuf header;
 
+    public RecordFileHeader(ByteBuf header) {
+        this.header = header;
+    }
     /**
      * 获取记录的大小。
      *
@@ -102,9 +105,5 @@ public class RecordFileHeader {
      */
     public void setBitMapSize(int bitMapSize) {
         header.setInt(16, bitMapSize);
-    }
-
-    public RecordFileHeader(ByteBuf header) {
-        this.header = header;
     }
 }

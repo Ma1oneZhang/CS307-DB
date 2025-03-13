@@ -1,5 +1,6 @@
 package edu.sustech.cs307.physicalOperator;
 
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.tuple.ProjectTuple;
 import edu.sustech.cs307.tuple.Tuple;
@@ -23,17 +24,17 @@ public class ProjectOperator implements PhysicalOperator {
     }
 
     @Override
-    public boolean hasNext() {
+    public boolean hasNext() throws DBException{
         return input.hasNext();
     }
 
     @Override
-    public void Begin() {
+    public void Begin() throws DBException {
         input.Begin();
     }
 
     @Override
-    public void Next() {
+    public void Next() throws DBException {
         if (hasNext()) {
             input.Next();
             Tuple inputTuple = input.Current();

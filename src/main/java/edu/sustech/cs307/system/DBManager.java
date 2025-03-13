@@ -13,7 +13,6 @@ import org.pmw.tinylog.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
 public class DBManager {
     private final MetaManager metaManager;
