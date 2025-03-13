@@ -8,6 +8,7 @@ import edu.sustech.cs307.record.RecordPageHeader;
 import edu.sustech.cs307.storage.BufferPool;
 import edu.sustech.cs307.storage.DiskManager;
 import edu.sustech.cs307.storage.Page;
+import edu.sustech.cs307.storage.PagePosition;
 
 /**
  * 记录管理器类，负责管理数据库记录的创建、删除和文件操作。
@@ -67,10 +68,9 @@ public class RecordManager {
      * @throws DBException 如果在打开文件过程中发生错误
      */
     public RecordFileHandle OpenFile(String table_name) throws DBException {
-        Page page = new Page();
         String data_file = String.format("%s/%s", table_name, "data");
+        Page page = bufferPool.FetchPage(new PagePosition(data_file, 0));
         RecordFileHeader recordFileHeader = new RecordFileHeader(page.data);
-        diskManager.ReadPage(page, data_file, 0, Page.DEFAULT_PAGE_SIZE);
         return new RecordFileHandle(diskManager, bufferPool, data_file, recordFileHeader);
     }
 

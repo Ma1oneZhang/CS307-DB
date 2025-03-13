@@ -2,12 +2,15 @@ package edu.sustech.cs307.tuple;
 
 import edu.sustech.cs307.meta.TabCol;
 import edu.sustech.cs307.meta.TableMeta;
+import edu.sustech.cs307.record.RID;
 import edu.sustech.cs307.record.Record;
 import edu.sustech.cs307.value.Value;
 import edu.sustech.cs307.value.ValueType;
 
 import java.util.ArrayList;
 
+import edu.sustech.cs307.exception.DBException;
+import edu.sustech.cs307.exception.ExceptionTypes;
 import edu.sustech.cs307.meta.ColumnMeta;
 
 import io.netty.buffer.ByteBuf;
@@ -16,16 +19,17 @@ public class TableTuple extends Tuple {
     private final String tableName;
     private final TableMeta tableMeta;
     private final Record record;
+    private final RID rid;
 
-    public TableTuple(String tableName, TableMeta tableMeta, Record record) {
+    public TableTuple(String tableName, TableMeta tableMeta, Record record, RID rid) {
         this.tableName = tableName;
         this.tableMeta = tableMeta;
         this.record = record;
+        this.rid = rid;
     }
 
     @Override
-    public Value getValue(TabCol tabCol) {
-        // TODO: throw a exception
+    public Value getValue(TabCol tabCol) throws DBException {
         if (!tabCol.getTableName().equals(tableName)) {
             return null;
         }
@@ -41,9 +45,7 @@ public class TableTuple extends Tuple {
         return convertByteBufToValue(columnValueBuf, columnMeta.type);
     }
 
-    private Value convertByteBufToValue(ByteBuf byteBuf, ValueType columnType) {
-        byte[] bytes = new byte[byteBuf.readableBytes()];
-
+    private Value convertByteBufToValue(ByteBuf byteBuf, ValueType columnType) throws DBException {
         if (columnType == ValueType.INTEGER) {
             return new Value(byteBuf.getLong(0));
         } else if (columnType == ValueType.CHAR) {
@@ -51,8 +53,7 @@ public class TableTuple extends Tuple {
         } else if (columnType == ValueType.FLOAT) {
             return new Value(byteBuf.getDouble(0));
         } else {
-            // TODO: throw an exception
-            return null; // Or throw an exception for unsupported types
+            throw new DBException(ExceptionTypes.UnsupportedValueType(columnType));
         }
     }
 
@@ -69,7 +70,7 @@ public class TableTuple extends Tuple {
     }
 
     @Override
-    public Value[] getValues() {
+    public Value[] getValues() throws DBException {
         // 通过 meta 顺序和信息获取所有 Value
         ArrayList<Value> values = new ArrayList<>();
         for (ColumnMeta columnMeta : this.tableMeta.getColumns().values()) {
@@ -78,5 +79,9 @@ public class TableTuple extends Tuple {
             values.add(value);
         }
         return values.toArray(new Value[0]);
+    }
+
+    public RID getRID() {
+        return this.rid;
     }
 }

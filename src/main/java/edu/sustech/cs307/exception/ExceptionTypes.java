@@ -7,6 +7,8 @@ public enum ExceptionTypes {
     BAD_IO_TYPE,
     INVALID_SQL,
     UNSUPPORTED_COMMAND_TYPE,
+    UNSUPPORTED_OPERATOR_TYPE,
+    UNSUPPORTED_VALUE_TYPE,
     UNABLE_LOAD_METADATA,
     UNABLE_SAVE_METADATA,
     TABLE_ALREADY_EXIST,
@@ -15,10 +17,10 @@ public enum ExceptionTypes {
     COLUMN_DOSE_NOT_EXIST,
     TABLE_HAS_NO_COLUMN,
     INVALID_TABLE_WIDTH,
-    UNSUPPORTED_OPERATOR_TYPE,
     INSERT_COLUMN_SIZE_NOT_MATCH,
     INSERT_COLUMN_NAME_NOT_MATCH,
     INSERT_COLUMN_TYPE_NOT_MATCH,
+    GET_VALUE_FROM_TEMP_TUPLE,
     ;
 
     private String error_result;
@@ -126,5 +128,17 @@ public enum ExceptionTypes {
         INSERT_COLUMN_TYPE_NOT_MATCH.SetErrorResult(
                 String.format("Insert column type not match"));
         return INSERT_COLUMN_TYPE_NOT_MATCH;
+    }
+
+    static public ExceptionTypes UnsupportedValueType(ValueType valueType) {
+        UNSUPPORTED_VALUE_TYPE.SetErrorResult(
+                String.format("Unsupported value type: %s", valueType));
+        return UNSUPPORTED_VALUE_TYPE;
+    }
+
+    static public ExceptionTypes GetValueFromTempTuple() {
+        GET_VALUE_FROM_TEMP_TUPLE.SetErrorResult(
+                String.format("Get value from temp tuple"));
+        return GET_VALUE_FROM_TEMP_TUPLE;
     }
 }

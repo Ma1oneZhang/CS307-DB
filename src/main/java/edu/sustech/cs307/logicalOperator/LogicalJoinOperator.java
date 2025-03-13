@@ -5,25 +5,19 @@ import net.sf.jsqlparser.expression.Expression;
 import java.util.Arrays;
 import java.util.Collection;
 
-import net.sf.jsqlparser.expression.Expression;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 public class LogicalJoinOperator extends LogicalOperator {
     private final Collection<Expression> onExpressions;
     private final LogicalOperator leftInput;
     private final LogicalOperator rightInput;
-    private int depth;
 
-    public LogicalJoinOperator(LogicalOperator left, LogicalOperator right, Collection<Expression> onExpressions,
+    public LogicalJoinOperator(LogicalOperator left, LogicalOperator right,
+            Collection<Expression> onExpr,
             int depth) {
         super(Arrays.asList(left, right));
         this.leftInput = left;
         this.rightInput = right;
-        this.onExpressions = onExpressions;
-        this.depth = depth;
+        this.onExpressions = onExpr;
     }
 
     public LogicalOperator getLeftInput() {
@@ -34,8 +28,8 @@ public class LogicalJoinOperator extends LogicalOperator {
         return rightInput;
     }
 
-    public List<Expression> getJoinExprs() {
-        return (List<Expression>) onExpressions; // 类型转换
+    public Collection<Expression> getJoinExprs() {
+        return onExpressions; // 类型转换
     }
 
     @Override

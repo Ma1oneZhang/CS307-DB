@@ -35,7 +35,7 @@ public class DBEntry {
         Logger.info("Type 'help' to see this message again.");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws DBException {
         Logger.getConfiguration().formatPattern("{date: HH:mm:ss.SSS} {level}: {message}").activate();
 
         Logger.info("Hello, This is CS307-DB!");
@@ -97,6 +97,7 @@ public class DBEntry {
                         Logger.info(getSperator(physicalOperator.outputSchema().size()));
                     }
                     physicalOperator.Close();
+                    dbManager.getBufferPool().FlushAllPages("");
                 } catch (DBException e) {
                     Logger.error(e.getMessage());
                     Logger.error("An error occurred. Please try again.");
@@ -105,11 +106,10 @@ public class DBEntry {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.error("Some error occurred. Exiting...");
-        } finally {
-
+            // persist the disk manager
+            dbManager.getBufferPool().FlushAllPages("");
+            Logger.error("Some error occurred. Exiting after persistdata...");
         }
-
     }
 
     private static String getHeaderString(ArrayList<ColumnMeta> columnMetas) {
@@ -122,7 +122,7 @@ public class DBEntry {
         return header.toString();
     }
 
-    private static String getRecordString(Tuple tuple) {
+    private static String getRecordString(Tuple tuple) throws DBException {
         StringBuilder tuple_string = new StringBuilder("|");
         for (var entry : tuple.getValues()) {
             String tabCol = String.format("%s", entry);

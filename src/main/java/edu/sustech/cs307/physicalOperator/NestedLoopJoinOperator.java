@@ -1,54 +1,53 @@
 package edu.sustech.cs307.physicalOperator;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.ColumnMeta;
-import edu.sustech.cs307.record.Record;
 import edu.sustech.cs307.tuple.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class NestedLoopJoinOperator implements PhysicalOperator {
-    private PhysicalOperator leftInput;
-    private PhysicalOperator rightInput;
-    private List<Expression> joinExprs;
 
-    public NestedLoopJoinOperator(PhysicalOperator leftInput, PhysicalOperator rightInput, List<Expression> joinExprs) {
-        this.leftInput = leftInput;
-        this.rightInput = rightInput;
-        this.joinExprs = joinExprs;
+    private PhysicalOperator leftOperator;
+    private PhysicalOperator rightOperator;
+    private Collection<Expression> expr;
+
+    public NestedLoopJoinOperator(PhysicalOperator leftOperator, PhysicalOperator rightOperator,
+            Collection<Expression> expr) {
+        this.leftOperator = leftOperator;
+        this.rightOperator = rightOperator;
+        this.expr = expr;
     }
 
     @Override
     public boolean hasNext() {
-        //TODO: implement hasNext()
         return false;
     }
 
     @Override
-    public void Begin() {
-        //TODO: implement Begin()
+    public void Begin() throws DBException {
+
     }
 
     @Override
     public void Next() {
-        //TODO: implement Next()
+
     }
 
     @Override
     public Tuple Current() {
-        //TODO: implement Current()
         return null;
     }
 
     @Override
     public void Close() {
-        //TODO: implement Close()
+
     }
 
     @Override
     public ArrayList<ColumnMeta> outputSchema() {
-        //TODO: implement outputSchema()
         return null;
     }
 }

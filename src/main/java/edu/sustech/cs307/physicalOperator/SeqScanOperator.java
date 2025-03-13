@@ -1,21 +1,19 @@
 package edu.sustech.cs307.physicalOperator;
 
 import edu.sustech.cs307.meta.ColumnMeta;
-import edu.sustech.cs307.record.Record;
+
 import edu.sustech.cs307.system.DBManager;
 import edu.sustech.cs307.tuple.TableTuple;
 import edu.sustech.cs307.tuple.Tuple;
 import edu.sustech.cs307.meta.TableMeta;
-import edu.sustech.cs307.record.RecordFileHandle;
 import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.record.RID;
 import edu.sustech.cs307.record.RecordPageHandle;
 import edu.sustech.cs307.record.BitMap;
+import edu.sustech.cs307.record.Record;
+import edu.sustech.cs307.record.RecordFileHandle;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class SeqScanOperator implements PhysicalOperator {
     private String tableName;
@@ -23,7 +21,7 @@ public class SeqScanOperator implements PhysicalOperator {
     private TableMeta tableMeta;
     private RecordFileHandle fileHandle;
     private Record currentRecord;
-    private TableTuple tupleType;
+
     private int currentPageNum;
     private int currentSlotNum;
     private int totalPages;
@@ -39,7 +37,6 @@ public class SeqScanOperator implements PhysicalOperator {
             // Handle exception properly, maybe log or rethrow
             e.printStackTrace();
         }
-        this.tupleType = new TableTuple(tableName, tableMeta, currentRecord);
     }
 
     @Override
@@ -68,7 +65,7 @@ public class SeqScanOperator implements PhysicalOperator {
     }
 
     @Override
-    public void Begin() {
+    public void Begin() throws DBException {
         try {
             fileHandle = dbManager.getRecordManager().OpenFile(tableName);
             totalPages = fileHandle.getFileHeader().getNumberOfPages();
@@ -88,7 +85,6 @@ public class SeqScanOperator implements PhysicalOperator {
             return;
         try {
             if (hasNext()) { // Advance to the next record
-                RecordPageHandle pageHandle = fileHandle.FetchPageHandle(currentPageNum);
                 RID rid = new RID(currentPageNum, currentSlotNum);
                 currentRecord = fileHandle.GetRecord(rid);
                 currentSlotNum++;
@@ -112,7 +108,7 @@ public class SeqScanOperator implements PhysicalOperator {
         if (!isOpen || currentRecord == null) {
             return null;
         }
-        return new TableTuple(tableName, tableMeta, currentRecord); // Create new TableTuple for each record
+        return new TableTuple(tableName, tableMeta, currentRecord, new RID(this.currentPageNum, this.currentSlotNum));
     }
 
     @Override

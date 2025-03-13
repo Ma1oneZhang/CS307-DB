@@ -20,7 +20,6 @@ public class InMemoryOrderedIndex implements Index {
     private TreeMap<Value, RID> indexMap;
 
     public InMemoryOrderedIndex(String persistPath) {
-        this.indexMap = new TreeMap<>();
         // read from persistPath
         try {
             File file = new File(persistPath);
@@ -28,7 +27,7 @@ public class InMemoryOrderedIndex implements Index {
                 ObjectMapper objectMapper = new ObjectMapper();
                 TypeReference<TreeMap<Value, RID>> typeRef = new TypeReference<>() {
                 };
-                this.indexMap = objectMapper.readValue(file, typeRef);
+                this.indexMap = new TreeMap<>(objectMapper.readValue(file, typeRef));
             }
         } catch (IOException e) {
             Logger.error("Error loading index data: " + e.getMessage());
@@ -37,11 +36,8 @@ public class InMemoryOrderedIndex implements Index {
 
     @Override
     public RID EqualTo(Value value) {
-        if (indexMap.containsKey(value)) {
-            return indexMap.get(value);
-        } else {
-            return null; // or throw an exception if preferred
-        }
+        // or throw an exception if preferred
+        return indexMap.getOrDefault(value, null);
     }
 
     /**
