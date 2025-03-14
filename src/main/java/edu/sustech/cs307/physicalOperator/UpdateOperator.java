@@ -1,71 +1,133 @@
 package edu.sustech.cs307.physicalOperator;
 
 import edu.sustech.cs307.exception.DBException;
+import edu.sustech.cs307.exception.ExceptionTypes;
 import edu.sustech.cs307.meta.ColumnMeta;
+import edu.sustech.cs307.meta.TabCol;
+import edu.sustech.cs307.record.RecordFileHandle;
+import edu.sustech.cs307.tuple.TableTuple;
+import edu.sustech.cs307.tuple.TempTuple;
 import edu.sustech.cs307.tuple.Tuple;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+
+import edu.sustech.cs307.value.Value;
+import edu.sustech.cs307.value.ValueType;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 
 public class UpdateOperator implements PhysicalOperator {
-    private PhysicalOperator inputOperator;
+    private SeqScanOperator seqScanOperator;
     private String tableName;
-    private List<UpdateSet> updateSets;
+    private UpdateSet updateSet;
     private Expression whereExpr;
 
-    public UpdateOperator(PhysicalOperator inputOperator, String tableName, List<UpdateSet> updateSets,
+    private int updateCount;
+    private boolean isDone;
+
+    public UpdateOperator(PhysicalOperator inputOperator, String tableName, UpdateSet updateSet,
             Expression whereExpr) {
-        this.inputOperator = inputOperator;
+        if (!(inputOperator instanceof SeqScanOperator seqScanOperator)) {
+            throw new RuntimeException("The delete operator only accepts SeqScanOperator as input");
+        }
+        this.seqScanOperator = seqScanOperator;
         this.tableName = tableName;
-        this.updateSets = updateSets;
+        this.updateSet = updateSet;
         this.whereExpr = whereExpr;
+        this.updateCount = 0;
+        this.isDone = false;
     }
 
     @Override
     public boolean hasNext() {
-        // TODO: Implement hasNext
-        return false;
+        return !isDone;
     }
 
     @Override
     public void Begin() throws DBException {
-        // TODO: Implement Begin
+        seqScanOperator.Begin();
+        RecordFileHandle fileHandle = seqScanOperator.getFileHandle();
+
+        while (seqScanOperator.hasNext()) {
+            seqScanOperator.Next();
+            TableTuple tuple = (TableTuple) seqScanOperator.Current();
+
+            if (whereExpr == null || tuple.eval_expr(whereExpr)) {
+                Value[] oldValues = tuple.getValues();
+                List<Value> newValues = new ArrayList<>(Arrays.asList(oldValues));
+                TabCol[] schema = tuple.getTupleSchema();
+
+                for (int i = 0; i < this.updateSet.getColumns().size(); i++){
+                    String targetColumn = updateSet.getColumn(i).toString();
+                    int index = -1;
+                    for (int j = 0; j < schema.length; j++) {
+                        if (schema[j].getColumnName().equalsIgnoreCase(targetColumn)) {
+                            index = j;
+                            break;
+                        }
+                    }
+                    if (index == -1) {
+                        throw new DBException(ExceptionTypes.ColumnDoseNotExist(targetColumn));
+                    }
+                    Value newValue = tuple.evaluateExpression(updateSet.getValue(i));
+                    newValues.set(index, newValue);
+                }
+                ByteBuf buffer = Unpooled.buffer();
+                for (Value v : newValues) {
+                    buffer.writeBytes(v.ToByte());
+                }
+
+                fileHandle.UpdateRecord(tuple.getRID(), buffer);
+                updateCount++;
+            }
+        }
     }
 
     @Override
     public void Next() {
-        // TODO: Implement Next
+        isDone = true;
     }
 
     @Override
     public Tuple Current() {
-        // TODO: Implement Current
+        if (!isDone) {
+            ArrayList<Value> result = new ArrayList<>();
+            result.add(new Value(updateCount, ValueType.INTEGER));
+            return new TempTuple(result);
+        }
         return null;
     }
 
     @Override
     public void Close() {
-        // TODO: Implement Close
+        seqScanOperator.Close();
     }
 
     @Override
     public ArrayList<ColumnMeta> outputSchema() {
-        // TODO: Implement outputSchema
-        return null;
+        ArrayList<ColumnMeta> schema = new ArrayList<>();
+        schema.add(new ColumnMeta("update", "numberOfUpdatedRows", ValueType.INTEGER, 0, 0));
+        return schema;
     }
 
     public void reset() {
-        // TODO: Implement reset
+        updateCount = 0;
+        isDone = false;
     }
 
     public Tuple getNextTuple() {
-        // TODO: Implement getNextTuple
+        if (hasNext()) {
+            Next();
+            return Current();
+        }
         return null;
     }
 
     public void close() {
-        // TODO: Implement close
+        Close();
     }
 }

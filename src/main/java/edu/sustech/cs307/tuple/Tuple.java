@@ -1,6 +1,7 @@
 package edu.sustech.cs307.tuple;
 
 import edu.sustech.cs307.exception.DBException;
+import edu.sustech.cs307.exception.ExceptionTypes;
 import edu.sustech.cs307.meta.TabCol;
 import edu.sustech.cs307.value.Value;
 import edu.sustech.cs307.value.ValueComparer;
@@ -88,4 +89,20 @@ public abstract class Tuple {
         }
         return null; // Unsupported constant type
     }
+
+    public Value evaluateExpression(Expression expr) throws DBException {
+        if (expr instanceof StringValue) {
+            return new Value(((StringValue) expr).getValue(), ValueType.CHAR);
+        } else if (expr instanceof DoubleValue) {
+            return new Value(((DoubleValue) expr).getValue(), ValueType.FLOAT);
+        } else if (expr instanceof LongValue) {
+            return new Value(((LongValue) expr).getValue(), ValueType.INTEGER);
+        } else if (expr instanceof Column) {
+            Column col = (Column) expr;
+            return getValue(new TabCol(col.getTableName(), col.getColumnName()));
+        } else {
+            throw new DBException(ExceptionTypes.UnsupportedExpression(expr));
+        }
+    }
+
 }

@@ -129,4 +129,8 @@ public class SeqScanOperator implements PhysicalOperator {
     public ArrayList<ColumnMeta> outputSchema() {
         return tableMeta.columns_list;
     }
+
+    public RecordFileHandle getFileHandle() {
+        return fileHandle;
+    }
 }
