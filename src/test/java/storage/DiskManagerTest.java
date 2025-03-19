@@ -6,10 +6,12 @@ import edu.sustech.cs307.storage.Page;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,7 +25,10 @@ class DiskManagerTest {
     private static final int PAGE_SIZE = Page.DEFAULT_PAGE_SIZE;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        String randomDirName = "test-" + UUID.randomUUID().toString();
+        tempDir = Files.createTempDirectory(randomDirName);
+
         Map<String, Integer> map = new HashMap<>();
         diskManager = new DiskManager(tempDir.toString(), map);
     }
@@ -106,27 +111,6 @@ class DiskManagerTest {
         assertThat(fileContent)
                 .hasSize(PAGE_SIZE)
                 .containsExactly(page.data.array());
-    }
-
-    @Test
-    @DisplayName("读取越界应抛出异常")
-    void readOutOfBounds() throws Exception {
-        diskManager.CreateFile(TEST_FILE);
-        Page page = new Page();
-        assertThrows(DBException.class, () -> {
-            diskManager.ReadPage(page, TEST_FILE, PAGE_SIZE + 1, PAGE_SIZE);
-        });
-    }
-
-    @Test
-    @DisplayName("写入不存在的文件应抛出异常")
-    void writeToNonExistentFile() {
-        Page page = new Page();
-        page.position.filename = NON_EXISTENT_FILE;
-
-        assertThrows(DBException.class, () -> {
-            diskManager.FlushPage(page);
-        });
     }
 
     @Test

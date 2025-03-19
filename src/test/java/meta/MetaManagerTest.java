@@ -97,9 +97,4 @@ class MetaManagerTest {
         ColumnMeta column = new ColumnMeta("salary", "employees", ValueType.FLOAT, 0, 4);
         assertThrows(DBException.class, () -> metaManager.addColumnInTable("employees", column));
     }
-
-    @AfterEach
-    void printAllTableNames() {
-        System.out.println(this.metaManager.getTableNames());
-    }
 }
