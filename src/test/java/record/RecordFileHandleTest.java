@@ -11,9 +11,11 @@ import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.UUID;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,8 +31,11 @@ class RecordFileHandleTest {
     static RecordFileHandle fileHandle;
     static final String TEST_FILENAME = "test_file.db";
 
-    @BeforeAll
-    static void setup() throws DBException, IOException {
+    @BeforeEach
+    void setup() throws DBException, IOException {
+        String randomDirName = "test-" + UUID.randomUUID().toString();
+        tempDir = Files.createTempDirectory(randomDirName);
+
         Map<String, Integer> fileMap = new HashMap<>();
         diskManager = new DiskManager(tempDir.toString(), fileMap);
         bufferPool = new BufferPool(10, diskManager);

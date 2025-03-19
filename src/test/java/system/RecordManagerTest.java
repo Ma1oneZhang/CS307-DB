@@ -10,11 +10,15 @@ import edu.sustech.cs307.storage.Page;
 import edu.sustech.cs307.system.RecordManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,16 +31,20 @@ public class RecordManagerTest {
 
     @TempDir
     Path tempDir;
-
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        String randomDirName = "test-" + UUID.randomUUID().toString();
+        tempDir = Files.createTempDirectory(randomDirName);
+        // 确保临时目录存在
+        Files.createDirectories(tempDir);
+
         diskManager = new DiskManager(tempDir.toString(), new HashMap<>());
         bufferPool = new BufferPool(10, diskManager);
         recordManager = new RecordManager(diskManager, bufferPool);
     }
-
     @Test
     @DisplayName("测试文件创建")
+    @Order(1)
     void testCreateFile() throws DBException {
         String filename = "testFile";
         int recordSize = 100;
@@ -55,6 +63,7 @@ public class RecordManagerTest {
 
     @Test
     @DisplayName("测试无效记录大小的文件创建")
+    @Order(2)
     void testCreateFileWithInvalidRecordSize() {
         String filename = "testFile";
         int invalidRecordSize = -1;
@@ -66,6 +75,7 @@ public class RecordManagerTest {
 
     @Test
     @DisplayName("测试文件删除")
+    @Order(5)
     void testDeleteFile() throws DBException {
         String filename = "testFile";
         int recordSize = 100;
@@ -79,25 +89,27 @@ public class RecordManagerTest {
 
     @Test
     @DisplayName("测试文件打开")
+    @Order(3)
     void testOpenFile() throws DBException {
-        String filename = "testFile";
+        String table_name = "testFile";
         int recordSize = 100;
 
-        recordManager.CreateFile(filename, recordSize);
-        RecordFileHandle recordFileHandle = recordManager.OpenFile(filename);
+        recordManager.CreateFile("testFile/data", recordSize);
+        RecordFileHandle recordFileHandle = recordManager.OpenFile(table_name);
 
         assertThat(recordFileHandle).isNotNull();
-        assertThat(recordFileHandle.getFilename()).isEqualTo(filename);
+        assertThat(recordFileHandle.getFilename()).isEqualTo(String.format("%s/%s", table_name, "data"));
     }
 
     @Test
     @DisplayName("测试文件关闭")
+    @Order(4)
     void testCloseFile() throws DBException {
-        String filename = "testFile";
+        String table_name = "testFile";
         int recordSize = 100;
 
-        recordManager.CreateFile(filename, recordSize);
-        RecordFileHandle recordFileHandle = recordManager.OpenFile(filename);
+        recordManager.CreateFile("testFile/data", recordSize);
+        RecordFileHandle recordFileHandle = recordManager.OpenFile(table_name);
         recordManager.CloseFile(recordFileHandle);
 
     }
