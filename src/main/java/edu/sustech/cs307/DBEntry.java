@@ -16,6 +16,7 @@ import edu.sustech.cs307.tuple.Tuple;
 import org.apache.commons.lang3.StringUtils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.TerminalBuilder;
 import org.pmw.tinylog.Logger;
 
 import java.util.ArrayList;
@@ -60,8 +61,12 @@ public class DBEntry {
             while (running) {
                 try {
                     LineReader scanner = LineReaderBuilder.builder()
-                            .appName("CS307 DB")
-                            .terminal(org.jline.terminal.TerminalBuilder.terminal())
+                            .terminal(
+                                    TerminalBuilder
+                                            .builder()
+                                            .dumb(true)
+                                            .build()
+                            )
                             .build();
                     Logger.info("CS307-DB> ");
                     sql = scanner.readLine();

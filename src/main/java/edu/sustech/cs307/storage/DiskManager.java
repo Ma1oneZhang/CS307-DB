@@ -165,7 +165,7 @@ public class DiskManager {
                 if (!file.createNewFile()) {
                     throw new DBException(ExceptionTypes.BadIOError("File creation failed: " + real_path));
                 }
-                this.filePages.put(filename, 0);
+                this.filePages.put(filename, 1);
             } catch (IOException e) {
                 throw new DBException(ExceptionTypes.BadIOError(e.getMessage()));
             }

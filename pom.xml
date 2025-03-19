@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline</artifactId>
-            <version>3.21.0</version> <!-- 请检查最新版本 -->
+            <version>3.25.0</version> <!-- 请检查最新版本 -->
         </dependency>
 
 
@@ -90,6 +90,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Json -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

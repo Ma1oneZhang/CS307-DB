@@ -41,7 +41,7 @@ public class RecordManager {
         diskManager.ReadPage(page, filename, 0, Page.DEFAULT_PAGE_SIZE);
         RecordFileHeader recordFileHeader = new RecordFileHeader(page.data);
         recordFileHeader.setRecordSize(record_size);
-        recordFileHeader.setNumberOfPages(1);
+        recordFileHeader.setNumberOfPages(0);
         recordFileHeader.setFirstFreePage(RecordPageHeader.NO_NEXT_FREE_PAGE);
         recordFileHeader.setNumberOfRecordsPrePage(
                 (8 * (Page.DEFAULT_PAGE_SIZE - RecordPageHeader.SIZE) / (1 + record_size * 8)));
