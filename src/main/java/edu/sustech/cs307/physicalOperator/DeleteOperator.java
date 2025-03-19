@@ -25,10 +25,10 @@ public class DeleteOperator implements PhysicalOperator {
     private int deleteCount;
 
     public DeleteOperator(PhysicalOperator inputOperator, String tableName, Expression whereExpr) {
-        if (!(inputOperator instanceof SeqScanOperator seqScanOperator)) {
+        if (!(inputOperator instanceof SeqScanOperator scanOperator)) {
             throw new RuntimeException("The delete operator only accepts SeqScanOperator as input");
         }
-        this.seqScanOperator = seqScanOperator;
+        this.seqScanOperator = scanOperator;
         this.tableName = tableName;
         this.whereExpr = whereExpr;
         this.isDone = false;
@@ -80,22 +80,5 @@ public class DeleteOperator implements PhysicalOperator {
         ArrayList<ColumnMeta> outputSchema = new ArrayList<>();
         outputSchema.add(new ColumnMeta("delete", "numberOfDeletedRows", ValueType.INTEGER, 0, 0));
         return outputSchema;
-    }
-
-    public void reset() {
-        isDone = false;
-        deleteCount = 0;
-    }
-
-    public Tuple getNextTuple() {
-        if (hasNext()) {
-            Next();
-            return Current();
-        }
-        return null;
-    }
-
-    public void close() {
-        Close();
     }
 }

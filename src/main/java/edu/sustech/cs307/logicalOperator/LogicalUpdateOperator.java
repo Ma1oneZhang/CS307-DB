@@ -10,16 +10,14 @@ import java.util.List;
 public class LogicalUpdateOperator extends LogicalOperator {
     private final String tableName;
     private final List<UpdateSet> columns;
-    private final List<Expression> expressions;
-    private final DBManager dbManager;
+    private final Expression expressions;
 
-    public LogicalUpdateOperator(DBManager dbManager, LogicalOperator child, String tableName, List<UpdateSet> columns,
-            List<Expression> expressions) {
+    public LogicalUpdateOperator(LogicalOperator child, String tableName, List<UpdateSet> columns,
+                                 Expression expressions) {
         super(Collections.singletonList(child));
         this.tableName = tableName;
         this.columns = columns;
         this.expressions = expressions;
-        this.dbManager = dbManager;
     }
 
     public String getTableName() {
@@ -30,7 +28,7 @@ public class LogicalUpdateOperator extends LogicalOperator {
         return columns;
     }
 
-    public List<Expression> getExpressions() {
+    public Expression getExpression() {
         return expressions;
     }
 

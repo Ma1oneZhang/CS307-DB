@@ -65,7 +65,7 @@ public class TableTuple extends Tuple {
             TabCol tabCol = new TabCol(columnMeta.tableName, columnMeta.name);
             result.add(tabCol);
         });
-        return (TabCol[]) result.toArray();
+        return result.toArray(new TabCol[0]);
 
     }
 

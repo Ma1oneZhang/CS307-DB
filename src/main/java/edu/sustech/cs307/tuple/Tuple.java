@@ -48,6 +48,9 @@ public abstract class Tuple {
         try {
             if (leftExpr instanceof Column leftColumn) {
                 leftValue = tuple.getValue(new TabCol(leftColumn.getTableName(), leftColumn.getColumnName()));
+                if (leftValue.type == ValueType.CHAR){
+                    leftValue = new Value(leftValue.toString());
+                }
             } else {
                 leftValue = getConstantValue(leftExpr); // Handle constant left value
             }
@@ -56,22 +59,29 @@ public abstract class Tuple {
                 rightValue = tuple.getValue(new TabCol(rightColumn.getTableName(), rightColumn.getColumnName()));
             } else {
                 rightValue = getConstantValue(rightExpr); // Handle constant right value
+
             }
 
             if (leftValue == null || rightValue == null)
                 return false;
 
             int comparisonResult = ValueComparer.compare(leftValue, rightValue);
-            if (operator.equals("=")) {
-                return comparisonResult == 0;
-            } else if (operator.equals(">")) {
-                return comparisonResult > 0;
-            } else if (operator.equals("<")) {
-                return comparisonResult < 0;
-            } else if (operator.equals(">=")) {
-                return comparisonResult >= 0;
-            } else if (operator.equals("<=")) {
-                return comparisonResult <= 0;
+            switch (operator) {
+                case "=" -> {
+                    return comparisonResult == 0;
+                }
+                case ">" -> {
+                    return comparisonResult > 0;
+                }
+                case "<" -> {
+                    return comparisonResult < 0;
+                }
+                case ">=" -> {
+                    return comparisonResult >= 0;
+                }
+                case "<=" -> {
+                    return comparisonResult <= 0;
+                }
             }
         } catch (DBException e) {
             e.printStackTrace(); // Handle exception properly

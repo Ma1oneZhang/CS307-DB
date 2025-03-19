@@ -14,7 +14,6 @@ import java.util.List;
 public class ProjectTuple extends Tuple {
     private final List<TabCol> schema;
     private final Tuple inputTuple;
-    private TabCol[] tupleSchema;
 
     public ProjectTuple(Tuple inputTuple, List<TabCol> schema) {
         this.schema = schema;
@@ -45,14 +44,14 @@ public class ProjectTuple extends Tuple {
      */
     @Override
     public TabCol[] getTupleSchema() {
-        return tupleSchema;
+        return schema.toArray(new TabCol[0]);
     }
 
     @Override
     public Value[] getValues() throws DBException {
         // 通过 meta 顺序和信息获取所有 Value
         ArrayList<Value> values = new ArrayList<>();
-        for (var tabCol : this.tupleSchema) {
+        for (var tabCol : this.schema) {
             Value value = getValue(tabCol);
             values.add(value);
         }
