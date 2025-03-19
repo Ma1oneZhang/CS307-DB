@@ -1,12 +1,14 @@
 package edu.sustech.cs307.logicalOperator;
 
+import edu.sustech.cs307.exception.DBException;
+import edu.sustech.cs307.exception.ExceptionTypes;
+import edu.sustech.cs307.meta.TabCol;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
-import java.util.Collections;
-import java.util.List;
-
-import net.sf.jsqlparser.statement.select.SelectItem;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,8 +27,19 @@ public class LogicalProjectOperator extends LogicalOperator {
         return input;
     }
 
-    public List<SelectItem<?>> getSelectItems() {
-        return selectItems;
+    public List<TabCol> getOutputSchema() throws DBException {
+        List<TabCol> outputSchema = new ArrayList<>();
+        for (SelectItem<?> selectItem : selectItems) {
+            if(selectItem.getExpression() instanceof Column column){
+                outputSchema.add(new TabCol(column.getTableName(), column.getColumnName()));
+            } else if(selectItem.getExpression() instanceof AllColumns column) {
+                outputSchema.add(new TabCol("*", "*"));
+            }
+            else {
+                throw new DBException(ExceptionTypes.NotSupportedOperation(selectItem.getExpression()));
+            }
+        }
+        return outputSchema;
     }
 
     @Override

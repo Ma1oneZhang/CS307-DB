@@ -14,14 +14,12 @@ import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.statement.select.Values;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 public class PhysicalPlanner {
@@ -59,8 +57,6 @@ public class PhysicalPlanner {
         // exists if index is defined)
         if (tableMeta.getIndexes() != null && !tableMeta.getIndexes().isEmpty()) {
             throw new RuntimeException("unimplement");
-            // InMemoryOrderedIndex index = new InMemoryOrderedIndex();
-            // return new InMemoryIndexScanOperator(index);
         } else {
             return new SeqScanOperator(tableName, dbManager);
         }
@@ -87,12 +83,7 @@ public class PhysicalPlanner {
     private static PhysicalOperator handleProject(DBManager dbManager, LogicalProjectOperator logicalProjectOp)
             throws DBException {
         PhysicalOperator inputOp = generateOperator(dbManager, logicalProjectOp.getInput());
-
-        for (var item : logicalProjectOp.getSelectItems()) {
-            System.out.println(item);
-        }
-        // return new ProjectOperator(inputOp, logicalProjectOp.getSelectItems());
-        return inputOp;
+        return new ProjectOperator(inputOp, logicalProjectOp.getOutputSchema());
     }
 
     /**
@@ -195,13 +186,17 @@ public class PhysicalPlanner {
         }
     }
 
-    private static PhysicalOperator handleDelete(DBManager dbManager, LogicalDeleteOperator logicalDeleteOp) {
-        // TODO: Implement handleDelete
-        return null;
+    private static PhysicalOperator handleDelete(DBManager dbManager, LogicalDeleteOperator logicalDeleteOp) throws DBException {
+        PhysicalOperator scanner = generateOperator(dbManager, logicalDeleteOp.getInput());
+        return new DeleteOperator(scanner, logicalDeleteOp.getTableName(), logicalDeleteOp.getExpression());
     }
 
-    private static PhysicalOperator handleUpdate(DBManager dbManager, LogicalUpdateOperator logicalUpdateOp) {
+    private static PhysicalOperator handleUpdate(DBManager dbManager, LogicalUpdateOperator logicalUpdateOp) throws DBException {
         // TODO: Implement handleUpdate
-        return null;
+        PhysicalOperator scanner = generateOperator(dbManager, logicalUpdateOp.getInput());
+        if (logicalUpdateOp.getColumns().size() != 1 ) {
+            throw new DBException(ExceptionTypes.InvalidSQL("INSERT", "Unsupported expression list"));
+        }
+        return new UpdateOperator(scanner, logicalUpdateOp.getTableName(), logicalUpdateOp.getColumns().get(0), logicalUpdateOp.getExpression());
     }
 }

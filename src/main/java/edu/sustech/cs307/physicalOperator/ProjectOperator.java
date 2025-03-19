@@ -4,10 +4,6 @@ import edu.sustech.cs307.exception.DBException;
 import edu.sustech.cs307.meta.ColumnMeta;
 import edu.sustech.cs307.tuple.ProjectTuple;
 import edu.sustech.cs307.tuple.Tuple;
-import net.sf.jsqlparser.statement.select.SelectItem;
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.AllTableColumns;
-import net.sf.jsqlparser.schema.Column;
 import edu.sustech.cs307.meta.TabCol;
 
 import java.util.ArrayList;
@@ -21,6 +17,13 @@ public class ProjectOperator implements PhysicalOperator {
     public ProjectOperator(PhysicalOperator input, List<TabCol> outputSchema) { // Use bounded wildcard
         this.input = input;
         this.outputSchema = outputSchema;
+        if (this.outputSchema.size() == 1 && this.outputSchema.get(0).getTableName().equals("*")) {
+            List<TabCol> newOutputSchema = new ArrayList<>();
+            for (ColumnMeta tabCol : input.outputSchema()) {
+                newOutputSchema.add(new TabCol(tabCol.tableName, tabCol.name));
+            }
+            this.outputSchema = newOutputSchema;
+        }
     }
 
     @Override
@@ -39,6 +42,7 @@ public class ProjectOperator implements PhysicalOperator {
             input.Next();
             Tuple inputTuple = input.Current();
             if (inputTuple != null) {
+
                 currentTuple = new ProjectTuple(inputTuple, outputSchema); // Create ProjectTuple
             } else {
                 currentTuple = null;
@@ -61,6 +65,6 @@ public class ProjectOperator implements PhysicalOperator {
 
     @Override
     public ArrayList<ColumnMeta> outputSchema() {
-        return outputSchema(); // For now, just return input schema
+        return input.outputSchema();
     }
 }

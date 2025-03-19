@@ -21,16 +21,16 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 
 public class UpdateOperator implements PhysicalOperator {
-    private SeqScanOperator seqScanOperator;
-    private String tableName;
-    private UpdateSet updateSet;
-    private Expression whereExpr;
+    private final SeqScanOperator seqScanOperator;
+    private final String tableName;
+    private final UpdateSet updateSet;
+    private final Expression whereExpr;
 
     private int updateCount;
     private boolean isDone;
 
     public UpdateOperator(PhysicalOperator inputOperator, String tableName, UpdateSet updateSet,
-            Expression whereExpr) {
+                          Expression whereExpr) {
         if (!(inputOperator instanceof SeqScanOperator seqScanOperator)) {
             throw new RuntimeException("The delete operator only accepts SeqScanOperator as input");
         }
@@ -61,11 +61,13 @@ public class UpdateOperator implements PhysicalOperator {
                 List<Value> newValues = new ArrayList<>(Arrays.asList(oldValues));
                 TabCol[] schema = tuple.getTupleSchema();
 
-                for (int i = 0; i < this.updateSet.getColumns().size(); i++){
-                    String targetColumn = updateSet.getColumn(i).toString();
+                for (int i = 0; i < this.updateSet.getColumns().size(); i++) {
+                    String targetTable = updateSet.getColumn(i).getTableName();
+                    String targetColumn = updateSet.getColumn(i).getColumnName();
                     int index = -1;
                     for (int j = 0; j < schema.length; j++) {
-                        if (schema[j].getColumnName().equalsIgnoreCase(targetColumn)) {
+                        if (schema[j].getColumnName().equalsIgnoreCase(targetColumn)
+                                && schema[j].getTableName().equalsIgnoreCase(targetTable)) {
                             index = j;
                             break;
                         }
@@ -94,12 +96,13 @@ public class UpdateOperator implements PhysicalOperator {
 
     @Override
     public Tuple Current() {
-        if (!isDone) {
+        if (isDone) {
             ArrayList<Value> result = new ArrayList<>();
             result.add(new Value(updateCount, ValueType.INTEGER));
             return new TempTuple(result);
+        } else {
+            throw new RuntimeException("Call Next() first");
         }
-        return null;
     }
 
     @Override
@@ -129,5 +132,9 @@ public class UpdateOperator implements PhysicalOperator {
 
     public void close() {
         Close();
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 }

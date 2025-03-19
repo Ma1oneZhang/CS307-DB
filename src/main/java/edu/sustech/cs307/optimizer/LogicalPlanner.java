@@ -75,6 +75,9 @@ public class LogicalPlanner {
 
     public static LogicalOperator handleSelect(DBManager dbManager, Select selectStmt) throws DBException {
         PlainSelect plainSelect = selectStmt.getPlainSelect();
+        if (plainSelect.getFromItem() == null) {
+            throw new DBException(ExceptionTypes.UnsupportedCommand((plainSelect.toString())));
+        }
         LogicalOperator root = new LogicalTableScanOperator(plainSelect.getFromItem().toString(), dbManager);
 
         int depth = 0;
@@ -106,18 +109,12 @@ public class LogicalPlanner {
 
     private static LogicalOperator handleUpdate(DBManager dbManager, Update updateStmt) throws DBException {
         LogicalOperator root = new LogicalTableScanOperator(updateStmt.getTable().getName(), dbManager);
-        if (updateStmt.getWhere() != null) {
-            root = new LogicalFilterOperator(root, updateStmt.getWhere());
-        }
-        return new LogicalUpdateOperator(dbManager, root, updateStmt.getTable().getName(), updateStmt.getUpdateSets(),
-                updateStmt.getExpressions());
+        return new LogicalUpdateOperator(root, updateStmt.getTable().getName(), updateStmt.getUpdateSets(),
+                updateStmt.getWhere());
     }
 
     private static LogicalOperator handleDelete(DBManager dbManager, Delete deleteStmt) throws DBException {
         LogicalOperator root = new LogicalTableScanOperator(deleteStmt.getTable().getName(), dbManager);
-        if (deleteStmt.getWhere() != null) {
-            root = new LogicalFilterOperator(root, deleteStmt.getWhere());
-        }
-        return new LogicalDeleteOperator(root);
+        return new LogicalDeleteOperator(root, deleteStmt.getWhere());
     }
 }
