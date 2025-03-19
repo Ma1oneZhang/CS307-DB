@@ -114,9 +114,7 @@ public class DBManager {
         }
         // ignore contents, just delete all
         deleteDirectory(file_folder);
-        if (!file_folder.delete()) {
-            throw new DBException(ExceptionTypes.BadIOError(table_folder));
-        }
+        file_folder.delete();
     }
 
     /**
