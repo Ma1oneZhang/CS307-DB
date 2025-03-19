@@ -1,14 +1,14 @@
 package edu.sustech.cs307.exception;
-
+import net.sf.jsqlparser.expression.Expression;
 import edu.sustech.cs307.value.ValueType;
 
 public enum ExceptionTypes {
     WRONG_COMPARISON_TYPE,
     BAD_IO_TYPE,
-    INVALID_SQL,
-    UNSUPPORTED_COMMAND_TYPE,
+    INVALID_SQL, UNSUPPORTED_COMMAND_TYPE,
     UNSUPPORTED_OPERATOR_TYPE,
     UNSUPPORTED_VALUE_TYPE,
+    UNSUPPORTED_EXPRESSION,
     UNABLE_LOAD_METADATA,
     UNABLE_SAVE_METADATA,
     TABLE_ALREADY_EXIST,
@@ -140,5 +140,11 @@ public enum ExceptionTypes {
         GET_VALUE_FROM_TEMP_TUPLE.SetErrorResult(
                 String.format("Get value from temp tuple"));
         return GET_VALUE_FROM_TEMP_TUPLE;
+    }
+
+    static public ExceptionTypes UnsupportedExpression(Expression expression) {
+        UNSUPPORTED_EXPRESSION.SetErrorResult(
+                String.format("Unsupported expression: %s", expression));
+        return UNSUPPORTED_EXPRESSION;
     }
 }
